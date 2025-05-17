@@ -43,6 +43,9 @@
 # Local files
 **/*.local
 
+# Platform-specific directories
+.windsurf/
+
 # Cache
 **/.cache
 **/.npm
