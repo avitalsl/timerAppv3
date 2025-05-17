@@ -84,16 +84,18 @@ const GridLayout: React.FC<GridLayoutProps> = ({
         <ResponsiveGridLayout
           className="layout"
           layouts={filteredLayouts}
+          // Ensures exactly 3 components can fit side by side at most
           breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-          cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+          cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
           rowHeight={60}
-          compactType="horizontal" // Use horizontal compaction for side-by-side arrangement
+          compactType="vertical" // Use vertical compaction to fix height issues
           preventCollision={false} // Allow components to flow naturally
           margin={[10, 10]} // Add some margin between items
           containerPadding={[10, 10]} // Add padding inside the container
           useCSSTransforms={true} // Improve performance
           autoSize={true} // Automatically adjust size of the grid container
-          isDraggable={true} // Disable dragging functionality
+          maxRows={25} // Limit maximum number of rows to prevent excessive height
+          isDraggable={true} // Enable dragging functionality
           isResizable={true} // Keep resizing functionality
           onLayoutChange={(currentLayout, allLayouts) => onLayoutChange(currentLayout, allLayouts)}
         >
