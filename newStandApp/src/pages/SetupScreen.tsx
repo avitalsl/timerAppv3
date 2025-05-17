@@ -1,122 +1,158 @@
-import React, { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Clock1Icon,
-  UsersIcon,
-  PlusIcon,
-  CheckIcon,
+  LayoutIcon,
 } from 'lucide-react'
+
+// Import layout configuration components
+import ComponentPicker from '../components/ComponentPicker'
+import GridLayout from '../components/GridLayout'
+import { useLayoutStorage } from '../hooks/useLayoutStorage'
+import { COMPONENT_DEFINITIONS } from '../types/layoutTypes'
+import type { LayoutItem } from '../types/layoutTypes'
 
 const SetupScreen = () => {
   const navigate = useNavigate()
-  const [meetingName, setMeetingName] = useState('Daily Standup')
-  const [duration, setDuration] = useState(15)
-  const [timePerPerson, setTimePerPerson] = useState(2)
+  
+  // Layout configuration state
+  const { layoutConfig, saveLayout, isLoaded } = useLayoutStorage()
+  const [selectedComponents, setSelectedComponents] = useState<string[]>([])
+  
+  // Initialize selected components based on loaded config
+  useMemo(() => {
+    if (isLoaded && layoutConfig) {
+      const visibleComponents = Object.entries(layoutConfig.components)
+        .filter(([_, component]) => component.visible)
+        .map(([id]) => id)
+      setSelectedComponents(visibleComponents)
+    }
+  }, [isLoaded, layoutConfig])
 
   const handleStartMeeting = () => {
+    // We could pass the layout configuration to the meeting screen using state management
+    // or URL parameters, but for now we'll just rely on the localStorage persistence
     navigate('/meeting')
+  }
+  
+  // Handle component selection/deselection
+  const handleToggleComponent = (componentId: string, selected: boolean) => {
+    if (selected) {
+      setSelectedComponents([...selectedComponents, componentId])
+    } else {
+      setSelectedComponents(selectedComponents.filter(id => id !== componentId))
+    }
+    
+    // Update layout configuration
+    const updatedComponents = { ...layoutConfig.components }
+    
+    // If component exists, update visibility
+    if (updatedComponents[componentId]) {
+      updatedComponents[componentId].visible = selected
+    } 
+    // If component doesn't exist yet, add it with default config
+    else if (selected) {
+      const componentDef = COMPONENT_DEFINITIONS.find(def => def.id === componentId)
+      if (componentDef) {
+        updatedComponents[componentId] = {
+          type: componentDef.type,
+          visible: true
+        }
+        
+        // Add the component to the layout with automatic arrangement
+        // With vertical compaction and dragability disabled, the exact x,y coordinates matter less
+        // as react-grid-layout will automatically arrange them
+        const newLayoutItems = Object.entries(layoutConfig.layouts).reduce(
+          (layouts, [breakpoint, items]) => {
+            // For automatic arrangement, we just need to add the component with its size
+            // The 'x' coordinate is set to 0, but this will be arranged automatically
+            // The 'y' coordinate is set to a high number to attempt to place it at the bottom,
+            // but the compaction algorithm will move it up as needed
+            const placementY = 1000; // A high number that will be adjusted by compaction
+            const placementX = 0;    // Will be arranged automatically
+            
+            layouts[breakpoint] = [
+              ...items,
+              {
+                i: componentId,
+                x: placementX,
+                y: placementY,
+                w: componentDef.defaultSize.w,
+                h: componentDef.defaultSize.h,
+                minW: componentDef.minSize.w,
+                minH: componentDef.minSize.h,
+                ...(componentDef.maxSize ? {
+                  maxW: componentDef.maxSize.w,
+                  maxH: componentDef.maxSize.h
+                } : {}),
+                static: false
+              }
+            ]
+            return layouts
+          },
+          {} as { [key: string]: LayoutItem[] }
+        )
+        
+        saveLayout({
+          layouts: { ...layoutConfig.layouts, ...newLayoutItems },
+          components: updatedComponents
+        })
+        return
+      }
+    }
+    
+    saveLayout({
+      ...layoutConfig,
+      components: updatedComponents
+    })
+  }
+  
+  // Handle layout changes from GridLayout component
+  const handleLayoutChange = (_layout: LayoutItem[], allLayouts: { [key: string]: LayoutItem[] }) => {
+    saveLayout({
+      ...layoutConfig,
+      layouts: allLayouts
+    })
   }
 
   return (
-    <div className="max-w-4xl mx-auto" data-testid="screen-setup">
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 className="text-2xl font-bold text-[#1a2a42] mb-6">
-          Meeting Setup
-        </h2>
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Meeting Name
-            </label>
-            <input
-              type="text"
-              value={meetingName}
-              onChange={(e) => setMeetingName(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4a9fff] focus:border-transparent"
-              data-testid="setup-meeting-name-input"
-            />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Meeting Duration (minutes)
-              </label>
-              <div className="flex items-center">
-                <Clock1Icon className="h-5 w-5 text-gray-400 mr-2" />
-                <input
-                  type="number"
-                  value={duration}
-                  onChange={(e) => setDuration(parseInt(e.target.value))}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4a9fff] focus:border-transparent"
-                  data-testid="setup-duration-input"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Time Per Person (minutes)
-              </label>
-              <div className="flex items-center">
-                <UsersIcon className="h-5 w-5 text-gray-400 mr-2" />
-                <input
-                  type="number"
-                  value={timePerPerson}
-                  onChange={(e) => setTimePerPerson(parseInt(e.target.value))}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4a9fff] focus:border-transparent"
-                  data-testid="setup-time-per-person-input"
-                />
-              </div>
-            </div>
-          </div>
-          <div data-testid="setup-components-section">
-            <h3 className="text-lg font-medium text-gray-700 mb-3">
-              Meeting Components
+    <div className="w-[95%] max-w-[1200px] mx-auto" data-testid="screen-setup">
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div data-testid="setup-layout-config-section">
+          <div className="flex items-center mb-3">
+            <LayoutIcon className="h-5 w-5 text-gray-500 mr-2" />
+            <h3 className="text-lg font-medium text-gray-700">
+              Layout Configuration
             </h3>
-            <div className="space-y-3">
-              <div className="flex items-center p-3 border border-gray-200 rounded-md bg-gray-50">
-                <div className="h-5 w-5 rounded-full bg-[#4a9fff] flex items-center justify-center">
-                  <CheckIcon className="h-3 w-3 text-white" />
-                </div>
-                <span className="ml-3 text-gray-700">Progress Updates</span>
-              </div>
-              <div className="flex items-center p-3 border border-gray-200 rounded-md bg-gray-50">
-                <div className="h-5 w-5 rounded-full bg-[#4a9fff] flex items-center justify-center">
-                  <CheckIcon className="h-3 w-3 text-white" />
-                </div>
-                <span className="ml-3 text-gray-700">Blockers Discussion</span>
-              </div>
-              <div className="flex items-center p-3 border border-gray-200 rounded-md bg-gray-50">
-                <div className="h-5 w-5 rounded-full border border-gray-300"></div>
-                <span className="ml-3 text-gray-700">Action Items Review</span>
-              </div>
-              <div className="flex items-center p-3 border border-dashed border-gray-300 rounded-md">
-                <PlusIcon className="h-5 w-5 text-gray-400" />
-                <span className="ml-3 text-gray-500">Add Custom Component</span>
-              </div>
-            </div>
           </div>
-          <div data-testid="setup-participants-section">
-            <h3 className="text-lg font-medium text-gray-700 mb-3">
-              Participants
-            </h3>
-            <div className="flex flex-wrap gap-2 mb-3">
-              {['John Doe', 'Jane Smith', 'Mike Johnson', 'Sarah Williams'].map(
-                (name, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center bg-[#e6f0ff] text-[#1a2a42] px-3 py-1 rounded-full"
-                  >
-                    <span>{name}</span>
-                  </div>
-                ),
+          
+          <p className="text-sm text-gray-500 mb-4">
+            Choose which components to include in your meeting layout and arrange them as needed.
+            The Timer component is always included and cannot be removed.
+          </p>
+          
+          <div className="flex flex-col space-y-6">
+            <div className="w-full">
+              <ComponentPicker 
+                components={COMPONENT_DEFINITIONS} 
+                selectedComponents={selectedComponents}
+                onToggleComponent={handleToggleComponent}
+              />
+            </div>
+            
+            <div className="w-full">
+              {isLoaded && (
+                <GridLayout
+                  layouts={layoutConfig.layouts}
+                  components={layoutConfig.components}
+                  onLayoutChange={handleLayoutChange}
+                />
               )}
-              <div className="flex items-center bg-gray-100 text-gray-500 px-3 py-1 rounded-full">
-                <PlusIcon className="h-4 w-4 mr-1" />
-                <span>Add</span>
-              </div>
             </div>
           </div>
         </div>
+        
+        {/* Participants section removed as it's now available as a configurable component in the layout */}
+        
         <div className="mt-8 flex justify-end">
           <button
             onClick={handleStartMeeting}

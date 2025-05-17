@@ -1,4 +1,4 @@
-import React from 'react'
+// No React import needed with modern JSX transform
 import { Outlet } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
@@ -9,12 +9,9 @@ const MainLayout = () => {
       <Sidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-6 flex">
-          <div className="w-2/3 pr-4">
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-6 flex justify-center">
+          <div className="w-full">
             <Outlet />
-          </div>
-          <div className="w-1/3 pl-4">
-            {/* Right container content will go here */}
           </div>
         </main>
       </div>
