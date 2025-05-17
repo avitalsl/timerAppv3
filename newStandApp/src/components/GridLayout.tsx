@@ -49,13 +49,15 @@ interface GridLayoutProps {
   };
   onLayoutChange: (layout: LayoutItem[], layouts: { [key: string]: LayoutItem[] }) => void;
   disableLayoutControls?: boolean; // Optional prop to hide controls in overlay mode
+  inMeetingOverlay?: boolean; // Flag to indicate if component is rendered in meeting overlay
 }
 
 const GridLayout: React.FC<GridLayoutProps> = ({
   layouts,
   components,
   onLayoutChange,
-  disableLayoutControls = false
+  disableLayoutControls = false,
+  inMeetingOverlay = false
 }) => {
   // Filter to only visible components
   const visibleItems = Object.entries(components)
@@ -82,8 +84,9 @@ const GridLayout: React.FC<GridLayoutProps> = ({
         </h3>
       )}
       <div 
-        className="border border-gray-200 bg-gray-50 rounded-md min-h-[400px] max-h-[2400px] overflow-auto"
+        className={`border border-gray-200 bg-gray-50 rounded-md min-h-[400px] ${inMeetingOverlay ? 'h-[600px] w-full' : 'max-h-[2400px]'} overflow-auto`}
         data-testid="grid-layout-container"
+        style={inMeetingOverlay ? { overflowY: 'auto', overflowX: 'auto' } : {}}
       >
         <ResponsiveGridLayout
           className="layout"
@@ -97,11 +100,12 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           margin={[10, 10]} // Add some margin between items
           containerPadding={[10, 10]} // Add padding inside the container
           useCSSTransforms={true} // Improve performance
-          autoSize={true} // Automatically adjust size of the grid container
+          autoSize={!inMeetingOverlay} // Only auto-size when not in meeting overlay
           maxRows={25} // Limit maximum number of rows to prevent excessive height
-          isDraggable={true} // Enable dragging functionality
-          isResizable={true} // Keep resizing functionality
+          isDraggable={!inMeetingOverlay} // Disable dragging in meeting overlay
+          isResizable={!inMeetingOverlay} // Disable resizing in meeting overlay
           onLayoutChange={(currentLayout, allLayouts) => onLayoutChange(currentLayout, allLayouts)}
+          style={inMeetingOverlay ? { position: 'relative', width: '100%' } : {}}
         >
           {Object.entries(components)
             .filter(([_, component]) => component.visible)

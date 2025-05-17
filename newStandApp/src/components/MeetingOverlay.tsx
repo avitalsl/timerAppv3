@@ -89,6 +89,7 @@ const MeetingOverlay = () => {
                 components={layoutConfig.components}
                 onLayoutChange={() => {}} // Read-only in overlay mode
                 disableLayoutControls={true}
+                inMeetingOverlay={true}
               />
             ) : (
               <div className="flex justify-center items-center h-40">
