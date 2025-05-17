@@ -25,6 +25,7 @@ Application top header bar.
 - data-testid: `component-header`
 - Child elements:
   - Title: `header-title`
+  - Start Meeting button: `start-meeting-button`
   - Notification button: `header-notification-button`
   - User profile: `header-user-profile`
 
@@ -110,3 +111,17 @@ Active meeting management screen.
   - Meeting notes: `meeting-notes-textarea`
   - Participants list: `meeting-participants-list`
   - Meeting stats section: `meeting-stats-section`
+
+## Overlay Components
+
+### MeetingOverlay
+Full-screen overlay for the active meeting display.
+- Component: `components/MeetingOverlay.tsx`
+- data-testid: `meeting-overlay`
+- Child elements:
+  - Close button: `meeting-overlay-close`
+
+### TopBarMeetingButton
+Persistent button in the top bar to start a meeting.
+- Component: `components/TopBarMeetingButton.tsx`
+- data-testid: `start-meeting-button`

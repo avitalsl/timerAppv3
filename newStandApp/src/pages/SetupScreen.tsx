@@ -2,13 +2,14 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   LayoutIcon,
+  RefreshCwIcon,
 } from 'lucide-react'
 
 // Import layout configuration components
 import ComponentPicker from '../components/ComponentPicker'
 import GridLayout from '../components/GridLayout'
 import { useLayoutStorage } from '../hooks/useLayoutStorage'
-import { COMPONENT_DEFINITIONS } from '../types/layoutTypes'
+import { COMPONENT_DEFINITIONS, DEFAULT_LAYOUT_CONFIG } from '../types/layoutTypes'
 import type { LayoutItem } from '../types/layoutTypes'
 
 const SetupScreen = () => {
@@ -113,16 +114,35 @@ const SetupScreen = () => {
       layouts: allLayouts
     })
   }
+  
+  // Reset layout to default (only timer)
+  const handleResetLayout = () => {
+    // Reset to default layout with only the timer
+    saveLayout(DEFAULT_LAYOUT_CONFIG)
+    
+    // Update selected components state to match
+    setSelectedComponents(['timer'])
+  }
 
   return (
     <div className="w-[95%] max-w-[1200px] mx-auto" data-testid="screen-setup">
       <div className="bg-white rounded-lg shadow-md p-6">
         <div data-testid="setup-layout-config-section">
-          <div className="flex items-center mb-3">
-            <LayoutIcon className="h-5 w-5 text-gray-500 mr-2" />
-            <h3 className="text-lg font-medium text-gray-700">
-              Layout Configuration
-            </h3>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center">
+              <LayoutIcon className="h-5 w-5 text-gray-500 mr-2" />
+              <h3 className="text-lg font-medium text-gray-700">
+                Layout Configuration
+              </h3>
+            </div>
+            <button
+              onClick={handleResetLayout}
+              className="flex items-center text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-md hover:bg-gray-200 transition-colors"
+              data-testid="reset-layout-button"
+            >
+              <RefreshCwIcon className="h-4 w-4 mr-1" />
+              Reset Layout
+            </button>
           </div>
           
           <p className="text-sm text-gray-500 mb-4">

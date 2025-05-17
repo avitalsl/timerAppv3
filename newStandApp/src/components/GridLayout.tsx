@@ -48,12 +48,16 @@ interface GridLayoutProps {
     }
   };
   onLayoutChange: (layout: LayoutItem[], layouts: { [key: string]: LayoutItem[] }) => void;
+  disableLayoutControls?: boolean; // Optional prop to hide controls in overlay mode
+  inMeetingOverlay?: boolean; // Flag to indicate if component is rendered in meeting overlay
 }
 
 const GridLayout: React.FC<GridLayoutProps> = ({
   layouts,
   components,
-  onLayoutChange
+  onLayoutChange,
+  disableLayoutControls = false,
+  inMeetingOverlay = false
 }) => {
   // Filter to only visible components
   const visibleItems = Object.entries(components)
@@ -74,28 +78,34 @@ const GridLayout: React.FC<GridLayoutProps> = ({
       className="bg-white rounded-lg p-4 shadow-sm"
       data-testid="grid-layout"
     >
-      <h3 className="text-lg font-medium text-gray-700 mb-3">
-        Layout Preview
-      </h3>
+      {!disableLayoutControls && (
+        <h3 className="text-lg font-medium text-gray-700 mb-3">
+          Layout Preview
+        </h3>
+      )}
       <div 
-        className="border border-gray-200 bg-gray-50 rounded-md min-h-[400px] max-h-[2400px] overflow-auto"
+        className={`border border-gray-200 bg-gray-50 rounded-md min-h-[400px] ${inMeetingOverlay ? 'h-[600px] w-full' : 'max-h-[2400px]'} overflow-auto`}
         data-testid="grid-layout-container"
+        style={inMeetingOverlay ? { overflowY: 'auto', overflowX: 'auto' } : {}}
       >
         <ResponsiveGridLayout
           className="layout"
           layouts={filteredLayouts}
+          // Ensures exactly 3 components can fit side by side at most
           breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-          cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+          cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
           rowHeight={60}
-          compactType="horizontal" // Use horizontal compaction for side-by-side arrangement
+          compactType="vertical" // Use vertical compaction to fix height issues
           preventCollision={false} // Allow components to flow naturally
           margin={[10, 10]} // Add some margin between items
           containerPadding={[10, 10]} // Add padding inside the container
           useCSSTransforms={true} // Improve performance
-          autoSize={true} // Automatically adjust size of the grid container
-          isDraggable={true} // Disable dragging functionality
-          isResizable={true} // Keep resizing functionality
+          autoSize={!inMeetingOverlay} // Only auto-size when not in meeting overlay
+          maxRows={25} // Limit maximum number of rows to prevent excessive height
+          isDraggable={!inMeetingOverlay} // Disable dragging in meeting overlay
+          isResizable={!inMeetingOverlay} // Disable resizing in meeting overlay
           onLayoutChange={(currentLayout, allLayouts) => onLayoutChange(currentLayout, allLayouts)}
+          style={inMeetingOverlay ? { position: 'relative', width: '100%' } : {}}
         >
           {Object.entries(components)
             .filter(([_, component]) => component.visible)

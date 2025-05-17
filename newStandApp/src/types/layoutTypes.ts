@@ -55,50 +55,50 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     type: ComponentType.TIMER,
     label: 'Timer',
     defaultSize: { w: 4, h: 2 },
-    minSize: { w: 2, h: 2 },
+    minSize: { w: 4, h: 2 },
     isRequired: true
   },
   {
     id: 'participants',
     type: ComponentType.PARTICIPANTS,
     label: 'Meeting participant list',
-    defaultSize: { w: 3, h: 4 },
-    minSize: { w: 2, h: 2 }
+    defaultSize: { w: 4, h: 4 },
+    minSize: { w: 4, h: 2 }
   },
   {
     id: 'links',
     type: ComponentType.LINKS,
     label: 'List of links',
-    defaultSize: { w: 3, h: 2 },
-    minSize: { w: 2, h: 2 }
+    defaultSize: { w: 4, h: 2 },
+    minSize: { w: 4, h: 2 }
   },
   {
     id: 'notes',
     type: ComponentType.NOTES,
     label: 'Area for notes',
     defaultSize: { w: 4, h: 4 },
-    minSize: { w: 2, h: 2 }
+    minSize: { w: 4, h: 2 }
   },
   {
     id: 'agenda',
     type: ComponentType.AGENDA,
     label: 'Meeting agenda',
     defaultSize: { w: 4, h: 3 },
-    minSize: { w: 2, h: 2 }
+    minSize: { w: 4, h: 2 }
   },
   {
     id: 'sprintGoals',
     type: ComponentType.SPRINT_GOALS,
     label: 'Sprint goals',
     defaultSize: { w: 4, h: 3 },
-    minSize: { w: 2, h: 2 }
+    minSize: { w: 4, h: 2 }
   },
   {
     id: 'checklist',
     type: ComponentType.CHECKLIST,
     label: 'Checklist time',
     defaultSize: { w: 4, h: 3 },
-    minSize: { w: 2, h: 2 }
+    minSize: { w: 4, h: 2 }
   }
 ];
 
@@ -106,7 +106,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
 export const DEFAULT_LAYOUT_CONFIG: LayoutConfiguration = {
   layouts: {
     lg: [
-      { i: 'timer', x: 0, y: 0, w: 4, h: 2, minW: 2, minH: 2, static: false }
+      { i: 'timer', x: 0, y: 0, w: 4, h: 2, minW: 4, minH: 2, static: false }
     ]
   },
   components: {
