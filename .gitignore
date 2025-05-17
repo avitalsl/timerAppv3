@@ -46,6 +46,25 @@
 # Platform-specific directories
 .windsurf/
 
+# Firebase
+**/.firebase/
+**/firebase-debug.log
+**/firestore-debug.log
+**/ui-debug.log
+**/firebase-export
+
+# Test generated files
+**/playwright-report
+**/test-results
+**/.nyc_output
+**/cypress/videos
+**/cypress/screenshots
+**/e2e-results
+
+# Temporary files
+**/tmp
+**/temp
+
 # Cache
 **/.cache
 **/.npm
