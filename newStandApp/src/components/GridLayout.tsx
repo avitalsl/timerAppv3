@@ -48,12 +48,14 @@ interface GridLayoutProps {
     }
   };
   onLayoutChange: (layout: LayoutItem[], layouts: { [key: string]: LayoutItem[] }) => void;
+  disableLayoutControls?: boolean; // Optional prop to hide controls in overlay mode
 }
 
 const GridLayout: React.FC<GridLayoutProps> = ({
   layouts,
   components,
-  onLayoutChange
+  onLayoutChange,
+  disableLayoutControls = false
 }) => {
   // Filter to only visible components
   const visibleItems = Object.entries(components)
@@ -74,9 +76,11 @@ const GridLayout: React.FC<GridLayoutProps> = ({
       className="bg-white rounded-lg p-4 shadow-sm"
       data-testid="grid-layout"
     >
-      <h3 className="text-lg font-medium text-gray-700 mb-3">
-        Layout Preview
-      </h3>
+      {!disableLayoutControls && (
+        <h3 className="text-lg font-medium text-gray-700 mb-3">
+          Layout Preview
+        </h3>
+      )}
       <div 
         className="border border-gray-200 bg-gray-50 rounded-md min-h-[400px] max-h-[2400px] overflow-auto"
         data-testid="grid-layout-container"

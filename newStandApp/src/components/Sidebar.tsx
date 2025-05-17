@@ -1,4 +1,4 @@
-import React from 'react'
+// No React import needed with modern JSX transform
 import { NavLink } from 'react-router-dom'
 import {
   ClockIcon,
@@ -31,7 +31,7 @@ const Sidebar = () => {
           data-testid="sidebar-nav-link-home"
         >
           <SettingsIcon className="h-5 w-5" />
-          <span className="ml-3 hidden md:block">Setup</span>
+          <span className="ml-3 hidden md:block">Customize Meeting</span>
         </NavLink>
         <NavLink
           to="/meeting"

@@ -1,5 +1,5 @@
-import React from 'react'
 import { BellIcon, UserIcon } from 'lucide-react'
+import TopBarMeetingButton from './TopBarMeetingButton'
 
 const Header = () => {
   return (
@@ -13,6 +13,7 @@ const Header = () => {
         </h1>
       </div>
       <div className="flex items-center space-x-4">
+        <TopBarMeetingButton data-testid="header-meeting-button" />
         <button 
           className="p-2 rounded-full hover:bg-gray-100"
           data-testid="header-notification-button"
