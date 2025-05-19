@@ -14,6 +14,7 @@ import type { LayoutItem } from '../types/layoutTypes'
 
 const SetupScreen = () => {
   const navigate = useNavigate()
+  console.log('[DEBUG] SetupScreen rendered');
   
   // Layout configuration state
   const { layoutConfig, saveLayout, isLoaded } = useLayoutStorage()
@@ -32,6 +33,7 @@ const SetupScreen = () => {
   const handleStartMeeting = () => {
     // We could pass the layout configuration to the meeting screen using state management
     // or URL parameters, but for now we'll just rely on the localStorage persistence
+    console.log('[DEBUG] handleStartMeeting called');
     navigate('/meeting')
   }
   
@@ -109,10 +111,21 @@ const SetupScreen = () => {
   
   // Handle layout changes from GridLayout component
   const handleLayoutChange = (_layout: LayoutItem[], allLayouts: { [key: string]: LayoutItem[] }) => {
-    saveLayout({
+    console.log('[SetupScreen] handleLayoutChange triggered:', { 
+      currentLayout: _layout,
+      allLayouts: allLayouts,
+      time: new Date().toISOString()
+    });
+
+    console.log('[SetupScreen] lg layout:', allLayouts.lg.map(i => ({ i: i.i, x: i.x, y: i.y })));
+
+    const updatedConfig = {
       ...layoutConfig,
       layouts: allLayouts
-    })
+    };
+
+    console.log('[SetupScreen] Saving layout config:', updatedConfig);    
+    saveLayout(updatedConfig);
   }
   
   // Reset layout to default (only timer)
@@ -125,7 +138,7 @@ const SetupScreen = () => {
   }
 
   return (
-    <div className="w-[95%] max-w-[1200px] mx-auto" data-testid="screen-setup">
+    <div className="w-full" data-testid="screen-setup">
       <div className="bg-white rounded-lg shadow-md p-6">
         <div data-testid="setup-layout-config-section">
           <div className="flex items-center justify-between mb-3">
@@ -175,6 +188,7 @@ const SetupScreen = () => {
         
         <div className="mt-8 flex justify-end">
           <button
+            type="button"
             onClick={handleStartMeeting}
             className="px-6 py-2 bg-[#4a9fff] text-white rounded-md hover:bg-[#3a8fee] focus:outline-none focus:ring-2 focus:ring-[#4a9fff] focus:ring-opacity-50"
             data-testid="setup-start-meeting-button"
