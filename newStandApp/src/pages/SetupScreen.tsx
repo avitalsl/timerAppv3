@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useIsMobile } from '../hooks/useIsMobile'
 import {
   LayoutIcon,
   RefreshCwIcon,
@@ -13,6 +14,7 @@ import { COMPONENT_DEFINITIONS, DEFAULT_LAYOUT_CONFIG } from '../types/layoutTyp
 import type { LayoutItem } from '../types/layoutTypes'
 
 const SetupScreen = () => {
+  const isMobile = useIsMobile();
   const navigate = useNavigate()
   console.log('[DEBUG] SetupScreen rendered');
   
@@ -109,21 +111,16 @@ const SetupScreen = () => {
     })
   }
   
-  // Handle layout changes from GridLayout component
-  const handleLayoutChange = (_layout: LayoutItem[], allLayouts: { [key: string]: LayoutItem[] }) => {
+  // Handle layout changes from GridLayout component (only lg layout)
+  const handleLayoutChange = (layout: LayoutItem[]) => {
     console.log('[SetupScreen] handleLayoutChange triggered:', { 
-      currentLayout: _layout,
-      allLayouts: allLayouts,
+      lgLayout: layout,
       time: new Date().toISOString()
     });
-
-    console.log('[SetupScreen] lg layout:', allLayouts.lg.map(i => ({ i: i.i, x: i.x, y: i.y })));
-
     const updatedConfig = {
       ...layoutConfig,
-      layouts: allLayouts
+      layouts: { ...layoutConfig.layouts, lg: layout }
     };
-
     console.log('[SetupScreen] Saving layout config:', updatedConfig);    
     saveLayout(updatedConfig);
   }
@@ -171,16 +168,22 @@ const SetupScreen = () => {
                 onToggleComponent={handleToggleComponent}
               />
             </div>
-            
-            <div className="w-full">
-              {isLoaded && (
-                <GridLayout
-                  layouts={layoutConfig.layouts}
-                  components={layoutConfig.components}
-                  onLayoutChange={handleLayoutChange}
-                />
-              )}
-            </div>
+
+            {isMobile ? (
+              <div className="w-full bg-blue-50 border border-blue-200 rounded-md p-4 text-blue-700 text-sm mt-2" data-testid="mobile-layout-info">
+                On mobile, components will appear stacked vertically in the meeting. Rearrangement is only available on desktop.
+              </div>
+            ) : (
+              <div className="w-full">
+                {isLoaded && (
+                  <GridLayout
+                    layouts={{ lg: layoutConfig.layouts.lg }}
+                    components={layoutConfig.components}
+                    onLayoutChange={(layout) => handleLayoutChange(layout)}
+                  />
+                )}
+              </div>
+            )}
           </div>
         </div>
         

@@ -94,9 +94,8 @@ const GridLayout: React.FC<GridLayoutProps> = ({
         <ResponsiveGridLayout
           className="layout"
           layouts={filteredLayouts}
-          // Ensures exactly 3 components can fit side by side at most
-          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-          cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
+          breakpoints={{ lg: 0 }}
+          cols={{ lg: 12 }}
           rowHeight={60}
           compactType="vertical" // Use vertical compaction to fix height issues
           preventCollision={false} // Allow components to flow naturally
