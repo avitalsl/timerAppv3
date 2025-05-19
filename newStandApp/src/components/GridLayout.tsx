@@ -73,6 +73,9 @@ const GridLayout: React.FC<GridLayoutProps> = ({
     {} as { [key: string]: LayoutItem[] }
   );
 
+  console.log('[GridLayout] Rendering with filtered layouts:', filteredLayouts);
+  console.log('[GridLayout] Visible components:', visibleItems);
+
   return (
     <div 
       className="bg-white rounded-lg p-4 shadow-sm"
@@ -104,7 +107,14 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           maxRows={25} // Limit maximum number of rows to prevent excessive height
           isDraggable={!inMeetingOverlay} // Disable dragging in meeting overlay
           isResizable={!inMeetingOverlay} // Disable resizing in meeting overlay
-          onLayoutChange={(currentLayout, allLayouts) => onLayoutChange(currentLayout, allLayouts)}
+          onLayoutChange={(currentLayout, allLayouts) => {
+            console.log('[GridLayout] Layout changed:', { 
+              currentLayout, 
+              allLayouts,
+              time: new Date().toISOString()
+            });
+            onLayoutChange(currentLayout, allLayouts);
+          }}
           style={inMeetingOverlay ? { position: 'relative', width: '100%' } : {}}
         >
           {Object.entries(components)

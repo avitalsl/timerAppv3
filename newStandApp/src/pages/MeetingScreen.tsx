@@ -22,6 +22,7 @@ import ChecklistWidget from '../components/widgets/ChecklistWidget'
 const ResponsiveGridLayout = WidthProvider(Responsive)
 
 const MeetingScreen = () => {
+  console.log('[MeetingScreen] file loaded');
   const [isRunning, setIsRunning] = useState(true)
   const [currentTime, setCurrentTime] = useState(120) // 2 minutes in seconds
   // We keep the nextSpeaker state but comment out currentSpeaker as it's not used in the current UI
@@ -134,34 +135,40 @@ const MeetingScreen = () => {
             </div>
           )}
           {isLoaded && (
-            <div className="mt-6">
-              {/* Display the customized layout based on user configuration */}
-              <ResponsiveGridLayout
-                className="layout"
-                layouts={layoutConfig.layouts}
-                breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-                cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-                rowHeight={80}
-                isDraggable={false}
-                isResizable={false}
-                compactType="vertical"
-              >
-                {Object.entries(layoutConfig.components)
-                  .filter(([_, component]) => component.visible)
-                  .map(([id, component]) => (
-                    <div 
-                      key={id} 
-                      className="border rounded-md bg-white shadow-sm overflow-hidden flex flex-col"
-                      data-testid={`meeting-layout-item-${id}`}
-                    >
-                      <div className="p-2 flex-grow overflow-auto">
-                        {renderComponentWidget(component.type)}
-                      </div>
-                    </div>
-                  ))}
-              </ResponsiveGridLayout>
+  <>
+    {(() => {
+      console.log('[MeetingScreen] Rendering with layouts:', layoutConfig.layouts);
+      return null;
+    })()}
+
+    <div className="mt-6">
+      <ResponsiveGridLayout
+        className="layout"
+        layouts={layoutConfig.layouts}
+        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+        cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+        rowHeight={80}
+        isDraggable={false}
+        isResizable={false}
+        compactType="vertical"
+      >
+        {Object.entries(layoutConfig.components)
+          .filter(([_, component]) => component.visible)
+          .map(([id, component]) => (
+            <div 
+              key={id} 
+              className="border rounded-md bg-white shadow-sm overflow-hidden flex flex-col"
+              data-testid={`meeting-layout-item-${id}`}
+            >
+              <div className="p-2 flex-grow overflow-auto">
+                {renderComponentWidget(component.type)}
+              </div>
             </div>
-          )}
+          ))}
+      </ResponsiveGridLayout>
+    </div>
+  </>
+)}
     </div>
   )
 }
