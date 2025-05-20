@@ -7,7 +7,7 @@ import {
 } from 'react-router-dom'
 import MainLayout from './layouts/MainLayout'
 import SetupScreen from './pages/SetupScreen'
-import MeetingScreen from './pages/MeetingScreen'
+import TimerSetup from './pages/TimerSetup'
 
 function App() {
   return (
@@ -16,7 +16,7 @@ function App() {
         <Routes>
           <Route path="/" element={<MainLayout />}>
             <Route index element={<SetupScreen />} />
-            <Route path="meeting" element={<MeetingScreen />} />
+            <Route path="meeting" element={<TimerSetup />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

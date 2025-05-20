@@ -41,7 +41,7 @@ const Sidebar = () => {
           data-testid="sidebar-nav-link-meeting"
         >
           <LayoutDashboardIcon className="h-5 w-5" />
-          <span className="ml-3 hidden md:block">Active Meeting</span>
+          <span className="ml-3 hidden md:block">Timer Setup</span>
         </NavLink>
         <div className="flex items-center py-3 px-4 text-gray-400">
           <UsersIcon className="h-5 w-5" />

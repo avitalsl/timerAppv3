@@ -264,6 +264,66 @@ const MeetingOverlay = () => {
 
 # Grid Space Optimization Enhancement Plan
 
+
+---
+
+## TimerSetup Component – Initial Feature Set
+
+### 1. Feature Overview
+The TimerSetup component allows users to configure how the meeting timer will behave before a meeting starts. It provides a user-friendly UI for selecting timer modes and extension options.
+
+### 2. UI/UX Requirements
+
+#### Section 1: Timer Mode Selection
+- **Purpose:** Let users choose how time is allocated in the meeting.
+- **Options:**
+  - **Option A:** Fixed meeting time (user enters total duration, e.g., 15 minutes)
+  - **Option B:** Per participant (user enters time per speaker, e.g., 1 minute per participant)
+- **UI Elements:**
+  - Radio buttons or segmented control for mode selection
+  - Number input (or dropdown) for:
+    - Total meeting duration (if Option A)
+    - Time per participant (if Option B)
+  - Clear, descriptive labels for all controls
+
+#### Section 2: Enable Time Extension
+- **Purpose:** Let users decide if time can be added during the meeting.
+- **Options:**
+  - Checkbox/toggle: "Allow adding time during the meeting"
+  - If enabled, show number input for extension amount:
+    - For "Per participant" mode: applies to current speaker
+    - For "Fixed meeting" mode: applies to total meeting timer
+  - Clear, descriptive labels for all controls
+
+### 3. State & Logic Requirements
+- Store selected timer mode and associated value
+- Store whether time extension is allowed and the extension amount
+- When timer mode changes, reset or hide irrelevant inputs
+- Validate inputs (e.g., positive numbers, required fields)
+- Expose configuration state for use by the meeting logic
+
+### 4. Data Structure Example
+```typescript
+interface TimerSetupConfig {
+  mode: 'fixed' | 'per-participant';
+  totalDurationMinutes?: number;      // for fixed mode
+  perParticipantMinutes?: number;     // for per-participant mode
+  allowExtension: boolean;
+  extensionAmountMinutes?: number;
+}
+```
+
+### 5. Testing
+- Each UI control should have a unique data-testid
+- Test user flows for both modes and extension option
+- Test that state updates as expected when user interacts
+
+### 6. Next Steps
+- Implement TimerSetup.tsx UI and state logic
+- Integrate with meeting start flow
+- Document test IDs in screens.md
+
+
 ## Feature Overview
 Enhance the Active Meeting Overlay to automatically optimize component placement by expanding existing components to fill empty grid spaces.
 
