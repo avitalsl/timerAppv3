@@ -77,7 +77,7 @@ const TimerSetup: React.FC = () => {
               onChange={() => setMode('fixed')}
               data-testid="timer-mode-fixed"
             />
-            <span>Fixed meeting time</span>
+            <span className="text-sm text-gray-500">Fixed meeting time</span>
           </label>
           <label className="flex items-center gap-2">
             <input
@@ -88,12 +88,12 @@ const TimerSetup: React.FC = () => {
               onChange={() => setMode('per-participant')}
               data-testid="timer-mode-per-participant"
             />
-            <span>Per participant</span>
+            <span className="text-sm text-gray-500">Per participant</span>
           </label>
         </div>
         {mode === 'fixed' ? (
           <div className="flex flex-col gap-1">
-            <label htmlFor="total-duration" className="text-sm">Total meeting duration (minutes)</label>
+            <label htmlFor="total-duration" className="text-sm text-gray-500">Total meeting duration (minutes)</label>
             <input
               id="total-duration"
               type="number"
@@ -109,13 +109,13 @@ const TimerSetup: React.FC = () => {
           </div>
         ) : (
           <div className="flex flex-col gap-1">
-            <label htmlFor="per-participant" className="text-sm">Time per participant (minutes)</label>
+            <label htmlFor="per-participant" className="text-sm text-gray-500">Time per participant ({mode === 'per-participant' ? 'seconds' : 'minutes'})</label>
             <input
               id="per-participant"
               type="number"
               min={1}
-              value={perParticipant}
-              onChange={e => setPerParticipant(Number(e.target.value))}
+              value={mode === 'per-participant' ? perParticipant * 60 : perParticipant}
+              onChange={e => setPerParticipant(mode === 'per-participant' ? Number(e.target.value) / 60 : Number(e.target.value))}
               className="border rounded px-2 py-1 w-32"
               data-testid="input-per-participant"
             />
@@ -128,7 +128,7 @@ const TimerSetup: React.FC = () => {
 
       {/* Enable Time Extension */}
       <section className="mb-8" data-testid="time-extension-section">
-        <label className="flex items-center gap-2 mb-2">
+        <label className="flex items-center gap-2 mb-2 text-sm text-gray-500">
           <input
             type="checkbox"
             checked={allowExtension}
@@ -139,17 +139,17 @@ const TimerSetup: React.FC = () => {
         </label>
         {allowExtension && (
           <div className="flex flex-col gap-1 ml-6 mt-2">
-            <label htmlFor="extension-amount" className="text-sm">
+            <label htmlFor="extension-amount" className="text-sm text-gray-500">
               {mode === 'per-participant'
-                ? 'Time added per participant (minutes)'
+                ? 'Time added per participant (seconds)'
                 : 'Time added to meeting (minutes)'}
             </label>
             <input
               id="extension-amount"
               type="number"
               min={1}
-              value={extensionAmount}
-              onChange={e => setExtensionAmount(Number(e.target.value))}
+              value={mode === 'per-participant' ? extensionAmount * 60 : extensionAmount}
+              onChange={e => setExtensionAmount(mode === 'per-participant' ? Number(e.target.value) / 60 : Number(e.target.value))}
               className="border rounded px-2 py-1 w-32"
               data-testid="input-extension-amount"
             />

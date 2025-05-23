@@ -23,7 +23,7 @@ const ComponentPicker: React.FC<ComponentPickerProps> = ({
         {components.map((component) => (
           <div 
             key={component.id}
-            className="flex items-center p-1.5 border border-gray-200 rounded-md bg-primary-sand"
+            className="flex items-center p-1.5 border border-gray-200 rounded-md bg-primary-sandLight"
             data-testid={`component-picker-item-${component.id}`}
           >
             <Checkbox

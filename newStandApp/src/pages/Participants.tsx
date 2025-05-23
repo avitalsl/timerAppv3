@@ -32,11 +32,16 @@ const [participants, setParticipants] = useState<Participant[]>(getInitialPartic
 React.useEffect(() => {
   localStorage.setItem(localStorageKey, JSON.stringify(participants));
 }, [participants]);
-  const [newName, setNewName] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
 
+  // Filter participants by search term (case-insensitive substring)
+  const filteredParticipants = participants.filter(p =>
+    p.name.toLowerCase().includes(searchTerm.trim().toLowerCase())
+  );
+
   const handleAdd = () => {
-    const trimmed = newName.trim();
+    const trimmed = searchTerm.trim();
     if (!trimmed) {
       setError('Name cannot be empty');
       return;
@@ -46,7 +51,7 @@ React.useEffect(() => {
       return;
     }
     setParticipants([...participants, { name: trimmed, included: true }]);
-    setNewName('');
+    setSearchTerm('');
     setError('');
   };
 
@@ -56,12 +61,15 @@ React.useEffect(() => {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6" data-testid="screen-participants">
-      <h2 className="text-2xl font-semibold mb-6 text-center">Participants</h2>
+      <div className="flex items-center mb-6"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path strokeLinecap="round" strokeLinejoin="round" d="M23 21v-2a4 4 0 0 0-3-3.87" /><path strokeLinecap="round" strokeLinejoin="round" d="M16 3.13a4 4 0 0 1 0 7.75" /></svg><h2 className="text-lg font-medium text-gray-700">Participants</h2></div>
       <div className="flex gap-2 mb-4" data-testid="participants-add-section">
         <input
           type="text"
-          value={newName}
-          onChange={e => setNewName(e.target.value)}
+          value={searchTerm}
+          onChange={e => {
+            setSearchTerm(e.target.value);
+            setError('');
+          }}
           onKeyDown={handleInputKeyDown}
           placeholder="Enter participant name"
           className="border rounded px-2 py-1 flex-1"
@@ -69,8 +77,9 @@ React.useEffect(() => {
         />
         <button
           onClick={handleAdd}
-          className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+          className="bg-primary-medium text-primary-lightText px-4 py-1 rounded hover:bg-primary-secondaryButtonColorHover font-bold"
           data-testid="btn-add-participant"
+          disabled={!searchTerm.trim()}
         >
           Add
         </button>
@@ -79,17 +88,17 @@ React.useEffect(() => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6" data-testid="participants-columns">
         {/* Selected Participants */}
         <div>
-          <h3 className="font-semibold mb-2 text-center">Selected Participants</h3>
-          <ul className="space-y-2 border rounded p-3 min-h-[120px]" data-testid="selected-participants-list">
-            {participants.filter(p => p.included).length === 0 ? (
+          <h3 className="text-lg font-medium text-gray-700">Selected Participants</h3>
+          <ul className="space-y-2 bg-white rounded py-3 px-0 min-h-[120px]" data-testid="selected-participants-list">
+            {(participants.filter(p => p.included).length === 0) ? (
               <li className="text-gray-400 text-center">No participants selected.</li>
             ) : (
               participants.filter(p => p.included).map((participant) => (
-                <li key={participant.name} className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded justify-between">
-                  <span className="text-gray-700">{participant.name}</span>
+                <li key={participant.name} className="flex items-center gap-2 bg-primary-sandLight border-2 border-primary-sandLight px-3 py-1 rounded justify-between">
+                  <span className="text-sm font-medium text-gray-700">{participant.name}</span>
                   <button
-                    className="w-5 h-5 flex items-center justify-center text-xs bg-red-300 text-white rounded-full p-0 hover:bg-red-400 focus:outline-none"
-                    style={{fontSize: '0.75rem', lineHeight: 1}}
+                    className="w-5 h-5 flex items-center justify-center text-xs rounded-full p-0 hover:bg-primary-sand focus:outline-none"
+                    style={{fontSize: '0.75rem', lineHeight: 1, color: 'hsl(0, 75%, 85%)'}}
                     onClick={() => setParticipants(participants.map(p => p.name === participant.name ? { ...p, included: false } : p))}
                     data-testid={`btn-remove-selected-${participant.name}`}
                     aria-label={`Remove ${participant.name}`}
@@ -103,17 +112,20 @@ React.useEffect(() => {
         </div>
         {/* Optional Participants */}
         <div>
-          <h3 className="font-semibold mb-2 text-center">Optional Participants</h3>
-          <ul className="space-y-2 border rounded p-3 min-h-[120px]" data-testid="optional-participants-list">
-            {participants.filter(p => !p.included).length === 0 ? (
+          <h3 className="text-lg font-medium text-gray-700">Optional Participants</h3>
+          <ul className="space-y-2 bg-white rounded py-3 px-0 min-h-[120px]" data-testid="optional-participants-list">
+            {(filteredParticipants.filter(p => !p.included).length === 0) ? (
               <li className="text-gray-400 text-center">No optional participants left.</li>
             ) : (
-              participants.filter(p => !p.included).map(participant => (
+              filteredParticipants.filter(p => !p.included).map(participant => (
                 <li key={participant.name} className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded justify-between">
-                  <span className="text-gray-700">{participant.name}</span>
+                  <span className="text-sm font-medium text-gray-700">{participant.name}</span>
                   <button
-                    className="text-xs bg-blue-500 text-white rounded px-2 py-0.5 hover:bg-blue-600"
-                    onClick={() => setParticipants(participants.map(p => p.name === participant.name ? { ...p, included: true } : p))}
+                    className="text-xs bg-primary-sandLight border-2 border-primary-sand text-gray-700 rounded px-2 py-0.5 hover:bg-primary-sand"
+                    onClick={() => {
+  setParticipants(participants.map(p => p.name === participant.name ? { ...p, included: true } : p));
+  setSearchTerm('');
+}}
                     data-testid={`btn-add-optional-${participant.name}`}
                   >
                     Add

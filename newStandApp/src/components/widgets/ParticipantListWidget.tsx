@@ -33,7 +33,7 @@ const ParticipantListWidget: React.FC<ParticipantListWidgetProps> = ({ mode = "s
               <span className="text-sm">{name}</span>
             </div>
           ))}
-          <div className="flex items-center bg-gray-100 text-gray-500 px-3 py-1 rounded-full cursor-pointer hover:bg-gray-200">
+          <div className="flex items-center bg-buttonColor text-gray-500 px-3 py-1 rounded-full cursor-pointer hover:bg-gray-200">
             <PlusIcon className="h-4 w-4 mr-1" />
             <span className="text-sm">Add</span>
           </div>
