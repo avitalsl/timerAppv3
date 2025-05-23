@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ListIcon, CheckIcon, PlusIcon } from 'lucide-react';
+import Checkbox from '../Checkbox';
 
 interface AgendaWidgetProps {
   mode?: "setup" | "meeting";
@@ -53,16 +54,9 @@ const AgendaWidget: React.FC<AgendaWidgetProps> = ({ mode = "setup" }) => {
               key={item.id}
               className="flex items-center p-2 bg-gray-50 rounded-md"
             >
-              <button
-                onClick={() => toggleItem(item.id)}
-                className={`h-4 w-4 mr-2 rounded flex items-center justify-center ${
-                  item.checked ? 'bg-[#4a9fff]' : 'border border-gray-300'
-                }`}
-              >
-                {item.checked && <CheckIcon className="h-3 w-3 text-white" />}
-              </button>
+              <span className="text-4xl text-primary-light mr-2">•</span>
               <span 
-                className={`text-sm ${item.checked ? 'line-through text-gray-400' : 'text-gray-700'}`}
+                className={`text-sm pl-2 ${item.checked ? 'line-through text-gray-400' : 'text-gray-700'}`}
               >
                 {item.text}
               </span>
@@ -71,22 +65,7 @@ const AgendaWidget: React.FC<AgendaWidgetProps> = ({ mode = "setup" }) => {
         </ul>
       </div>
 
-      <div className="mt-3 flex">
-        <input
-          type="text"
-          value={newItemText}
-          onChange={(e) => setNewItemText(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Add agenda item..."
-          className="flex-grow p-2 text-sm border border-gray-200 rounded-l-md focus:outline-none focus:ring-1 focus:ring-[#4a9fff]"
-        />
-        <button
-          onClick={addNewItem}
-          className="px-2 bg-[#4a9fff] text-white rounded-r-md hover:bg-[#3a8fee]"
-        >
-          <PlusIcon className="h-4 w-4" />
-        </button>
-      </div>
+
     </div>
   );
 };

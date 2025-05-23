@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CheckSquareIcon, CheckIcon } from 'lucide-react';
+import Checkbox from '../Checkbox';
 
 interface ChecklistWidgetProps {
   mode?: "setup" | "meeting";
@@ -35,16 +36,13 @@ const ChecklistWidget: React.FC<ChecklistWidgetProps> = ({ mode = "setup" }) => 
               key={item.id}
               className="flex items-center p-2 bg-gray-50 rounded-md"
             >
-              <button
-                onClick={() => toggleItem(item.id)}
-                className={`h-5 w-5 mr-2 rounded flex items-center justify-center ${
-                  item.checked ? 'bg-[#4a9fff]' : 'border border-gray-300'
-                }`}
-                aria-label={item.checked ? "Mark as incomplete" : "Mark as complete"}
-              >
-                {item.checked && <CheckIcon className="h-3 w-3 text-white" />}
-              </button>
-              <span className="text-sm text-gray-700">{item.text}</span>
+              <Checkbox
+                checked={item.checked}
+                onChange={() => toggleItem(item.id)}
+                className="mr-2"
+                aria-label={item.checked ? 'Mark as incomplete' : 'Mark as complete'}
+              />
+              <span className="text-sm text-gray-700 pl-2">{item.text}</span>
             </li>
           ))}
         </ul>

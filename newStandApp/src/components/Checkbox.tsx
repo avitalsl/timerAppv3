@@ -15,12 +15,12 @@ const Checkbox: React.FC<CheckboxProps> = ({ className = '', ...props }) => (
     />
     <span
       className={
-        `h-4 w-4 rounded border border-gray-300 flex items-center justify-center
+        `h-3.5 w-3.5 rounded border border-gray-300 flex items-center justify-center
         bg-white peer-checked:bg-white transition-colors`
       }
     >
       {props.checked && (
-        <svg className="w-4 h-4 text-primary-sand" viewBox="0 0 20 20" fill="none">
+        <svg className="w-5 h-5 text-primary-sand" viewBox="0 0 20 20" fill="none">
           <path d="M6 10l3 3 5-5" stroke="currentColor" strokeWidth="3" />
         </svg>
       )}

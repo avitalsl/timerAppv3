@@ -29,10 +29,8 @@ const SprintGoalsWidget: React.FC<SprintGoalsWidgetProps> = ({ mode = "setup" })
               className="p-3 bg-primary-sandLightest rounded-md"
             >
               <div className="flex items-start">
-                <div className={`mt-1 h-4 w-4 rounded flex-shrink-0 flex items-center justify-center ${
-                  goal.completed ? 'bg-[#4a9fff]' : 'border border-gray-300'
-                }`}>
-                  {goal.completed && <CheckIcon className="h-3 w-3 text-white" />}
+                <div className="mt-1 flex-shrink-0 flex items-center justify-center">
+                  <span className="text-4xl text-primary-light">•</span>
                 </div>
                 <span className="ml-2 text-sm text-gray-700">{goal.text}</span>
               </div>
