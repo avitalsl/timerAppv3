@@ -1,4 +1,5 @@
 import React from 'react';
+import Checkbox from './Checkbox';
 import type { ComponentDefinition } from '../types/layoutTypes';
 interface ComponentPickerProps {
   components: ComponentDefinition[];
@@ -25,15 +26,14 @@ const ComponentPicker: React.FC<ComponentPickerProps> = ({
             className="flex items-center p-1.5 border border-gray-200 rounded-md bg-primary-sand"
             data-testid={`component-picker-item-${component.id}`}
           >
-            <input
-              type="checkbox"
-              id={`component-${component.id}`}
-              checked={selectedComponents.includes(component.id)}
-              onChange={(e) => onToggleComponent(component.id, e.target.checked)}
-              disabled={component.isRequired}
-              className="h-3.5 w-3.5 text-[#4a9fff] focus:ring-[#4a9fff] border-gray-300 rounded"
-              data-testid={`component-picker-checkbox-${component.id}`}
-            />
+            <Checkbox
+  id={`component-${component.id}`}
+  checked={selectedComponents.includes(component.id)}
+  onChange={(e) => onToggleComponent(component.id, e.target.checked)}
+  disabled={component.isRequired}
+  className="h-3.5 w-3.5 text-[#4a9fff] focus:ring-[#4a9fff] border-gray-300 rounded"
+  data-testid={`component-picker-checkbox-${component.id}`}
+/>
             <label
               htmlFor={`component-${component.id}`}
               className="ml-2 text-xs font-medium text-gray-700"
