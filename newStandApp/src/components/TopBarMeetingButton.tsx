@@ -11,7 +11,7 @@ export const TopBarMeetingButton: React.FC = () => {
 
   return (
     <button
-      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+      className="flex items-center gap-2 px-4 py-2 bg-primary-buttonColor text-black rounded-md hover:bg-primary-buttonHover transition-colors"
       onClick={showOverlay}
       data-testid="start-meeting-button"
     >

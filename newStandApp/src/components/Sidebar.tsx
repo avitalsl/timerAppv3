@@ -12,7 +12,7 @@ import {
 const Sidebar = () => {
   return (
     <aside 
-      className="w-16 md:w-64 bg-[#1a2a42] text-white flex flex-col"
+      className="w-16 md:w-64 bg-primary-dark text-white flex flex-col" 
       data-testid="component-sidebar"
     >
       <div className="p-4 flex items-center justify-center md:justify-start" data-testid="sidebar-logo">
@@ -43,10 +43,16 @@ const Sidebar = () => {
           <LayoutDashboardIcon className="h-5 w-5" />
           <span className="ml-3 hidden md:block">Timer Setup</span>
         </NavLink>
-        <div className="flex items-center py-3 px-4 text-gray-400">
+        <NavLink
+          to="/participants"
+          className={({ isActive }) =>
+            `flex items-center py-3 px-4 ${isActive ? 'bg-[#2c4066] border-l-4 border-[#4a9fff]' : ''}`
+          }
+          data-testid="sidebar-nav-link-participants"
+        >
           <UsersIcon className="h-5 w-5" />
           <span className="ml-3 hidden md:block">Participants</span>
-        </div>
+        </NavLink>
         <div className="flex items-center py-3 px-4 text-gray-400">
           <CalendarIcon className="h-5 w-5" />
           <span className="ml-3 hidden md:block">Schedule</span>

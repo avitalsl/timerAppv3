@@ -8,6 +8,7 @@ import {
 import MainLayout from './layouts/MainLayout'
 import SetupScreen from './pages/SetupScreen'
 import TimerSetup from './pages/TimerSetup'
+import Participants from './pages/Participants'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/" element={<MainLayout />}>
             <Route index element={<SetupScreen />} />
             <Route path="meeting" element={<TimerSetup />} />
+            <Route path="participants" element={<Participants />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

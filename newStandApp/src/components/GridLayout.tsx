@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect, useState, type CSSProperties } from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -59,6 +59,24 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   disableLayoutControls = false,
   inMeetingOverlay = false
 }) => {
+  // Ref for the grid container
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
+  const [containerHeight, setContainerHeight] = useState<number>(0);
+
+  // Update container width and height on resize
+  useEffect(() => {
+    function updateSize() {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth);
+        setContainerHeight(containerRef.current.offsetHeight);
+      }
+    }
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+
   // Filter to only visible components
   const visibleItems = Object.entries(components)
     .filter(([_, component]) => component.visible)
@@ -76,6 +94,20 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   console.log('[GridLayout] Rendering with filtered layouts:', filteredLayouts);
   console.log('[GridLayout] Visible components:', visibleItems);
 
+  // Calculate minWidth/minHeight for grid items
+  let gridItemStyle: CSSProperties = {};
+  const GAP = 10; // px, must match the margin prop in ResponsiveGridLayout
+  if (visibleItems.length === 3 && containerWidth > 0) {
+    // There are two gaps between three items
+    const minWidth = (containerWidth - 2 * GAP) / 3;
+    gridItemStyle.minWidth = `${minWidth}px`;
+  }
+  if (visibleItems.length === 4 && containerHeight > 0) {
+    // There are three gaps between four items
+    const minHeight = (containerHeight - 3 * GAP) / 4;
+    gridItemStyle.minHeight = `${minHeight}px`;
+  }
+
   return (
     <div 
       className="bg-white rounded-lg p-4 shadow-sm"
@@ -90,6 +122,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
         className={`border border-gray-200 bg-gray-50 rounded-md min-h-[400px] ${inMeetingOverlay ? 'h-[600px] w-full' : 'max-h-[2400px]'} overflow-auto`}
         data-testid="grid-layout-container"
         style={inMeetingOverlay ? { overflowY: 'auto', overflowX: 'auto' } : {}}
+        ref={containerRef}
       >
         <ResponsiveGridLayout
           className="layout"
@@ -123,6 +156,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
                 key={id} 
                 className="border border-gray-300 rounded-md bg-white shadow-sm overflow-hidden flex flex-col"
                 data-testid={`grid-layout-item-${id}`}
+                style={gridItemStyle}
               >
                 <div className="bg-gray-100 p-2 border-b border-gray-300 flex justify-between items-center">
                   <span className="font-medium text-sm">{id}</span>
