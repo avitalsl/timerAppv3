@@ -418,3 +418,29 @@ function optimizeLayout(layout: LayoutItem[]): LayoutItem[] {
 | Optimization toggle (optional) | 1 hour |
 | Testing and refinement | 3 hours |
 | **Total** | **~10 hours** |
+
+---
+
+## Participants Component – Initial Plan
+
+### 1. Feature Overview
+Create a Participants page/component that will be rendered when the user clicks the "Participants" section in the sidebar. For now, this component will display a placeholder message indicating where participant management features will go.
+
+### 2. UI/UX Requirements
+- Add a new route `/participants` to the app router.
+- Update the sidebar so that the "Participants" item is a clickable link (not just a static div) and navigates to `/participants`.
+- The Participants component should display a clear placeholder (e.g., "Participants management coming soon") and use a unique `data-testid` for testing.
+
+### 3. Implementation Steps
+1. Create `src/pages/Participants.tsx` with a placeholder component and test id `screen-participants`.
+2. Update routing in `App.tsx` to add a `/participants` route pointing to the new component.
+3. Update the sidebar in `Sidebar.tsx`:
+   - Change the "Participants" div to a `NavLink` to `/participants`.
+   - Use the `UsersIcon` and label as before.
+   - Add `data-testid="sidebar-nav-link-participants"` for testing.
+
+### 4. Next Steps
+- Implement real participant management features in the Participants component.
+- Add end-to-end and unit tests for navigation and rendering.
+- Document test IDs in `screens.md`.
+
