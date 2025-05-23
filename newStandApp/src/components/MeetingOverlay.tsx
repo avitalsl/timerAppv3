@@ -56,6 +56,9 @@ const MeetingOverlay = () => {
   // Don't render anything if the overlay is not visible or main element not found
   if (!isOverlayVisible || !mainElement) return null;
   
+  // Use overlay mode for styling
+  const inMeetingOverlay = true;
+
   // Create overlay content - absolute positioning within the main element
   const overlayContent = (
     <div 
@@ -74,7 +77,7 @@ const MeetingOverlay = () => {
         </button>
       </div>
 
-      <div className="w-[90vw] h-[90vh] flex flex-col bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200 mx-auto my-auto p-4" data-component-name="MeetingOverlay">
+      <div className={`w-[90vw] h-[90vh] flex flex-col ${inMeetingOverlay ? 'bg-primary-sandLight' : 'bg-white'} rounded-lg shadow-2xl overflow-hidden mx-auto my-auto p-4`} data-component-name="MeetingOverlay">
   <div className="flex items-center justify-between mb-4">
     <h2 className="text-xl font-semibold text-gray-800 flex items-center">
       <span className="bg-primary-light h-3 w-3 rounded-full mr-2 animate-pulse"></span>

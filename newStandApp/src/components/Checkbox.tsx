@@ -20,7 +20,7 @@ const Checkbox: React.FC<CheckboxProps> = ({ className = '', ...props }) => (
       }
     >
       {props.checked && (
-        <svg className="w-4 h-4 text-primary-sand" viewBox="0 0 20 20" fill="none">
+        <svg className="w-5 h-5 text-primary-sand" viewBox="0 0 20 20" fill="none">
           <path d="M6 10l3 3 5-5" stroke="currentColor" strokeWidth="3" />
         </svg>
       )}

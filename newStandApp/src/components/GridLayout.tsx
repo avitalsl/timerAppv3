@@ -110,7 +110,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
 
   return (
     <div 
-      className="bg-white rounded-lg p-4 shadow-sm"
+      className="inMbg-primary-sandLight rounded-lg p-4 shadow-sm"
       data-testid="grid-layout"
     >
       {!disableLayoutControls && (
@@ -119,7 +119,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
         </h3>
       )}
       <div 
-        className={`border border-gray-200 bg-gray-50 rounded-md min-h-[400px] ${inMeetingOverlay ? 'h-[600px] w-full' : 'max-h-[2400px]'} overflow-auto`}
+        className={`${inMeetingOverlay ? 'bg-primary-sandLightest' : 'bg-gray-50'} rounded-md min-h-[400px] overflow-auto`}
         data-testid="grid-layout-container"
         style={inMeetingOverlay ? { overflowY: 'auto', overflowX: 'auto' } : {}}
         ref={containerRef}
@@ -163,7 +163,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
                     <span className="font-medium text-sm">{id}</span>
                   </div>
                 )}
-                <div className="p-2 flex-grow overflow-auto border-l-4 border-primary-sand">
+                <div className={`p-2 flex-grow overflow-auto${inMeetingOverlay ? ' border-l-4 border-primary-sand' : ''}`}>
                   {renderComponentWidget(component.type)}
                 </div>
               </div>
