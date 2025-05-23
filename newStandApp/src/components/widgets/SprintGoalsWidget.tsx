@@ -26,7 +26,7 @@ const SprintGoalsWidget: React.FC<SprintGoalsWidgetProps> = ({ mode = "setup" })
           {goals.map(goal => (
             <div 
               key={goal.id}
-              className="p-3 bg-gray-50 rounded-md"
+              className="p-3 bg-primary-sandLightest rounded-md"
             >
               <div className="flex items-start">
                 <div className={`mt-1 h-4 w-4 rounded flex-shrink-0 flex items-center justify-center ${

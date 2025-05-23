@@ -27,6 +27,8 @@ export default {
           buttonHover: '#cfa32c',
           peach: 'hsl(30, 75%, 85%)',
           sand: '#dbd4bd',
+          sandLight: '#f5f3ea',
+          sandLightest: '#eef1da33',
         },
       },
     },
