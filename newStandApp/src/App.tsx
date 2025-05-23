@@ -9,6 +9,7 @@ import MainLayout from './layouts/MainLayout'
 import SetupScreen from './pages/SetupScreen'
 import TimerSetup from './pages/TimerSetup'
 import Participants from './pages/Participants'
+import KickoffScreen from './components/KickoffScreen'
 
 function App() {
   return (
@@ -19,7 +20,8 @@ function App() {
             <Route index element={<SetupScreen />} />
             <Route path="meeting" element={<TimerSetup />} />
             <Route path="participants" element={<Participants />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="kickoff" element={<KickoffScreen />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
       </div>
