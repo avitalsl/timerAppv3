@@ -75,9 +75,9 @@ const MeetingOverlay = () => {
       </div>
 
       <div className="w-[90vw] h-[90vh] flex flex-col bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200 mx-auto my-auto p-4" data-component-name="MeetingOverlay">
-  <div className="bg-gradient-to-r from-blue-50 to-gray-50 flex items-center justify-between mb-4">
+  <div className="flex items-center justify-between mb-4">
     <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-      <span className="bg-blue-600 h-3 w-3 rounded-full mr-2 animate-pulse"></span>
+      <span className="bg-primary-light h-3 w-3 rounded-full mr-2 animate-pulse"></span>
       Active Meeting
     </h2>
   </div>

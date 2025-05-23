@@ -163,7 +163,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
                     <span className="font-medium text-sm">{id}</span>
                   </div>
                 )}
-                <div className="p-2 flex-grow overflow-auto">
+                <div className="p-2 flex-grow overflow-auto border-l-4 border-primary-sand">
                   {renderComponentWidget(component.type)}
                 </div>
               </div>

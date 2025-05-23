@@ -28,7 +28,7 @@ const ParticipantListWidget: React.FC<ParticipantListWidgetProps> = ({ mode = "s
           {participants.map((name, index) => (
             <div
               key={index}
-              className="flex items-center bg-[#e6f0ff] text-[#1a2a42] px-3 py-1 rounded-full"
+              className="flex items-center bg-primary-sandLight text-[#1a2a42] px-3 py-1 rounded-full"
             >
               <span className="text-sm">{name}</span>
             </div>

@@ -15,7 +15,7 @@ const Checkbox: React.FC<CheckboxProps> = ({ className = '', ...props }) => (
     />
     <span
       className={
-        `h-4 w-4 rounded border border-gray-300 flex items-center justify-center
+        `h-3.5 w-3.5 rounded border border-gray-300 flex items-center justify-center
         bg-white peer-checked:bg-white transition-colors`
       }
     >

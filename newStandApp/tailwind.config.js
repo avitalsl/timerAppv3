@@ -18,10 +18,10 @@ export default {
       colors: {
         primary: {
           dark: 'rgb(12, 44, 43)',
-          medium: '#2c4066',
-          light: '#4a9fff',
-          lightest: '#e6f0ff',
-          bg: '#f0f7ff',
+          medium: 'rgba(49, 114, 113, 1)',
+          light: 'rgb(104, 157, 157)',
+          lightest: 'rgb(145, 180, 179)',
+          bg: 'rgba(232, 245, 233, 1)',
           titleColor: 'rgba(49, 114, 113, 1)',
           buttonColor: '#e1b752',
           buttonHover: '#cfa32c',
@@ -29,6 +29,7 @@ export default {
           sand: '#dbd4bd',
           sandLight: '#f5f3ea',
           sandLightest: '#eef1da33',
+          verylightbeige: '#F9F6F1',
         },
       },
     },
