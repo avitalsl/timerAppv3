@@ -9,7 +9,10 @@ import {
   HistoryIcon,
 } from 'lucide-react'
 
+import { useNavigate } from 'react-router-dom';
+
 const Sidebar = () => {
+  const navigate = useNavigate();
   return (
     <aside 
       className="w-16 md:w-64 bg-primary-dark text-white flex flex-col" 
@@ -53,10 +56,14 @@ const Sidebar = () => {
           <UsersIcon className="h-5 w-5" />
           <span className="ml-3 hidden md:block">Participants</span>
         </NavLink>
-        <div className="flex items-center py-3 px-4 text-gray-400">
-          <CalendarIcon className="h-5 w-5" />
-          <span className="ml-3 hidden md:block">Schedule</span>
-        </div>
+        <div
+  className="flex items-center py-3 px-4 cursor-pointer hover:bg-[#2c4066] hover:text-white transition-colors"
+  data-testid="sidebar-kickoff"
+  onClick={() => navigate('/kickoff')}
+>
+  <CalendarIcon className="h-5 w-5" />
+  <span className="ml-3 hidden md:block">Kickoff</span>
+</div>
         <div className="flex items-center py-3 px-4 text-gray-400">
           <HistoryIcon className="h-5 w-5" />
           <span className="ml-3 hidden md:block">History</span>

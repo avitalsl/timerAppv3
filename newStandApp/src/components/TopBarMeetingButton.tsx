@@ -16,7 +16,7 @@ export const TopBarMeetingButton: React.FC = () => {
       data-testid="start-meeting-button"
     >
       <Play className="h-4 w-4" />
-      <span>Start Meeting</span>
+      <span className="font-bold">Start Meeting</span>
     </button>
   );
 };
