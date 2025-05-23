@@ -1,7 +1,11 @@
 import React from 'react';
 import { TargetIcon, CheckIcon } from 'lucide-react';
 
-const SprintGoalsWidget: React.FC = () => {
+interface SprintGoalsWidgetProps {
+  mode?: "setup" | "meeting";
+}
+
+const SprintGoalsWidget: React.FC<SprintGoalsWidgetProps> = ({ mode = "setup" }) => {
   // Sample sprint goals, would typically come from props or state
   const goals = [
     { id: 1, text: 'Complete the user authentication flow', completed: true },

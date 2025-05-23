@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { Clock1Icon, PlayIcon, PauseIcon, RefreshCwIcon } from 'lucide-react';
 
-const TimerWidget: React.FC = () => {
+interface TimerWidgetProps {
+  mode?: "setup" | "meeting";
+}
+
+const TimerWidget: React.FC<TimerWidgetProps> = ({ mode = "setup" }) => {
   const [time, setTime] = useState(15 * 60); // 15 minutes in seconds
   const [isRunning, setIsRunning] = useState(false);
 

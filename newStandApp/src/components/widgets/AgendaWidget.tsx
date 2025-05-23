@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { ListIcon, CheckIcon, PlusIcon } from 'lucide-react';
 
-const AgendaWidget: React.FC = () => {
+interface AgendaWidgetProps {
+  mode?: "setup" | "meeting";
+}
+
+const AgendaWidget: React.FC<AgendaWidgetProps> = ({ mode = "setup" }) => {
   const [items, setItems] = useState([
     { id: 1, text: 'Review sprint progress', checked: true },
     { id: 2, text: 'Discuss blockers', checked: false },

@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { FileTextIcon } from 'lucide-react';
 
-const NotesWidget: React.FC = () => {
+interface NotesWidgetProps {
+  mode?: "setup" | "meeting";
+}
+
+const NotesWidget: React.FC<NotesWidgetProps> = ({ mode = "setup" }) => {
   const [notes, setNotes] = useState<string>('');
 
   return (

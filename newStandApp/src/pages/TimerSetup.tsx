@@ -55,7 +55,7 @@ const TimerSetup: React.FC = () => {
   const isValidExtension = (val: number) => val > 0 && Number.isFinite(val);
 
   return (
-    <div className="max-w-xl mx-auto p-8" data-testid="screen-timer-setup">
+    <div className="bg-white rounded-lg shadow-md p-6" data-testid="screen-timer-setup">
       <h2 className="text-2xl font-semibold mb-6">Timer Setup</h2>
 
       {/* Timer Mode Selection */}

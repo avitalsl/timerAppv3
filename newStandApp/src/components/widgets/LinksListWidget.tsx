@@ -1,7 +1,11 @@
 import React from 'react';
 import { LinkIcon, ExternalLinkIcon } from 'lucide-react';
 
-const LinksListWidget: React.FC = () => {
+interface LinksListWidgetProps {
+  mode?: "setup" | "meeting";
+}
+
+const LinksListWidget: React.FC<LinksListWidgetProps> = ({ mode = "setup" }) => {
   // Sample links, would typically come from props or state
   const links = [
     { title: 'Sprint Board', url: 'https://example.com/board' },

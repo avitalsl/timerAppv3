@@ -74,32 +74,29 @@ const MeetingOverlay = () => {
         </button>
       </div>
 
-      <div className="w-full max-w-7xl mx-auto">
-        <div className="bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200">
-          <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-gray-50 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-              <span className="bg-blue-600 h-3 w-3 rounded-full mr-2 animate-pulse"></span>
-              Active Meeting
-            </h2>
-          </div>
-          
-          <div className="p-4">
-            {isConfigLoaded ? (
-              <GridLayout 
-                layouts={layoutConfig.layouts} 
-                components={layoutConfig.components}
-                onLayoutChange={() => {}} // Read-only in overlay mode
-                disableLayoutControls={true}
-                inMeetingOverlay={true}
-              />
-            ) : (
-              <div className="flex justify-center items-center h-40">
-                <p>Loading meeting layout...</p>
-              </div>
-            )}
-          </div>
-        </div>
+      <div className="w-[90vw] h-[90vh] flex flex-col bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200 mx-auto my-auto p-4" data-component-name="MeetingOverlay">
+  <div className="bg-gradient-to-r from-blue-50 to-gray-50 flex items-center justify-between mb-4">
+    <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+      <span className="bg-blue-600 h-3 w-3 rounded-full mr-2 animate-pulse"></span>
+      Active Meeting
+    </h2>
+  </div>
+  <div className="flex-1 overflow-auto">
+    {isConfigLoaded ? (
+      <GridLayout 
+        layouts={layoutConfig.layouts} 
+        components={layoutConfig.components}
+        onLayoutChange={() => {}} // Read-only in overlay mode
+        disableLayoutControls={true}
+        inMeetingOverlay={true}
+      />
+    ) : (
+      <div className="flex justify-center items-center h-40">
+        <p>Loading meeting layout...</p>
       </div>
+    )}
+  </div>
+</div>
     </div>
   );
 

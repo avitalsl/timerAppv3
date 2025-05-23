@@ -1,7 +1,11 @@
 import React from 'react';
 import { UsersIcon, PlusIcon } from 'lucide-react';
 
-const ParticipantListWidget: React.FC = () => {
+interface ParticipantListWidgetProps {
+  mode?: "setup" | "meeting";
+}
+
+const ParticipantListWidget: React.FC<ParticipantListWidgetProps> = ({ mode = "setup" }) => {
   // This would typically fetch from a state or props
   const participants = [
     'John Doe',

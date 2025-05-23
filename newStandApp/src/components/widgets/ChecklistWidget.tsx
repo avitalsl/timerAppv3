@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { CheckSquareIcon, CheckIcon } from 'lucide-react';
 
-const ChecklistWidget: React.FC = () => {
+interface ChecklistWidgetProps {
+  mode?: "setup" | "meeting";
+}
+
+const ChecklistWidget: React.FC<ChecklistWidgetProps> = ({ mode = "setup" }) => {
   const [items, setItems] = useState([
     { id: 1, text: 'Is everyone present?', checked: false },
     { id: 2, text: 'Are there any urgent issues to discuss?', checked: false },

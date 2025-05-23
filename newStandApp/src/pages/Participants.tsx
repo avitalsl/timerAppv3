@@ -55,7 +55,7 @@ React.useEffect(() => {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-8" data-testid="screen-participants">
+    <div className="bg-white rounded-lg shadow-md p-6" data-testid="screen-participants">
       <h2 className="text-2xl font-semibold mb-6 text-center">Participants</h2>
       <div className="flex gap-2 mb-4" data-testid="participants-add-section">
         <input
