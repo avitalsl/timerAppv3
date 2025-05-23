@@ -17,6 +17,7 @@ export default {
       },
       colors: {
         primary: {
+          verylightbeige: '#F9F6F1',
           dark: 'rgb(12, 44, 43)',
           medium: '#2c4066',
           light: '#4a9fff',

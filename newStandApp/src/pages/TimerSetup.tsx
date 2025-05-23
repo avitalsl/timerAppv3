@@ -3,6 +3,7 @@
  * Implement your timer setup UI here.
  */
 import React, { useState } from 'react';
+import { Clock1Icon } from 'lucide-react';
 
 /**
  * TimerSetup component allows users to configure meeting timer settings.
@@ -56,11 +57,16 @@ const TimerSetup: React.FC = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6" data-testid="screen-timer-setup">
-      <h2 className="text-2xl font-semibold mb-6">Timer Setup</h2>
+      <div className="flex items-center justify-between mb-3">
+  <div className="flex items-center">
+    <Clock1Icon className="h-5 w-5 text-gray-500 mr-2" />
+    <h2 className="text-lg font-medium text-gray-700">Timer Setup</h2>
+  </div>
+</div>
 
       {/* Timer Mode Selection */}
       <section className="mb-8" data-testid="timer-mode-section">
-        <label className="block font-medium mb-2">Timer mode</label>
+
         <div className="flex gap-6 mb-4">
           <label className="flex items-center gap-2">
             <input

@@ -4,6 +4,7 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import type { LayoutItem } from '../types/layoutTypes';
 import { ComponentType } from '../types/layoutTypes';
+import { expandComponentsToFillRow } from '../utils/layoutUtils';
 
 // Import widget components
 import TimerWidget from './widgets/TimerWidget';
@@ -83,13 +84,21 @@ const GridLayout: React.FC<GridLayoutProps> = ({
     .map(([id, _]) => id);
 
   // Filter layouts to only include visible components
-  const filteredLayouts = Object.entries(layouts).reduce(
+  let filteredLayouts = Object.entries(layouts).reduce(
     (acc, [breakpoint, layout]) => {
       acc[breakpoint] = layout.filter(item => visibleItems.includes(item.i));
       return acc;
     },
     {} as { [key: string]: LayoutItem[] }
   );
+
+  // If inMeetingOverlay, optimize layouts to expand components to fill row
+  if (inMeetingOverlay) {
+    filteredLayouts = Object.entries(filteredLayouts).reduce((acc, [breakpoint, layout]) => {
+      acc[breakpoint] = expandComponentsToFillRow(layout, 12);
+      return acc;
+    }, {} as { [key: string]: LayoutItem[] });
+  }
 
   console.log('[GridLayout] Rendering with filtered layouts:', filteredLayouts);
   console.log('[GridLayout] Visible components:', visibleItems);
