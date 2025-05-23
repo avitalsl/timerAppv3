@@ -158,9 +158,11 @@ const GridLayout: React.FC<GridLayoutProps> = ({
                 data-testid={`grid-layout-item-${id}`}
                 style={gridItemStyle}
               >
-                <div className="bg-gray-100 p-2 border-b border-gray-300 flex justify-between items-center">
-                  <span className="font-medium text-sm">{id}</span>
-                </div>
+                {!inMeetingOverlay && (
+                  <div className="bg-gray-100 p-2 border-b border-gray-300 flex justify-between items-center">
+                    <span className="font-medium text-sm">{id}</span>
+                  </div>
+                )}
                 <div className="p-2 flex-grow overflow-auto">
                   {renderComponentWidget(component.type)}
                 </div>
