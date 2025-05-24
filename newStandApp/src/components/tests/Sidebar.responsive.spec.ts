@@ -16,23 +16,22 @@ import { test, expect } from '@playwright/test';
 test.describe('Sidebar Responsive Breakpoints', () => {
   const sidebarTestId = '[data-testid="component-sidebar"]';
 
-  test('Sidebar is in standard state at ≥1200px', async ({ page }) => {
+  test('Sidebar is in desktop state at ≥1200px', async ({ page }) => {
     await page.setViewportSize({ width: 1300, height: 900 });
     await page.goto('/');
     const sidebar = await page.locator(sidebarTestId);
     await expect(sidebar).toBeVisible();
-    // Standard width: should match Tailwind's sb-compact:w-56 (14rem = 224px)
+    // Desktop width: Tailwind's desktop:w-56 (14rem = 224px)
     await expect(sidebar).toHaveCSS('width', '224px');
   });
 
-  test('Sidebar is in compact state at 1000px', async ({ page }) => {
+  test('Sidebar is in tablet state at 900–1199px', async ({ page }) => {
     await page.setViewportSize({ width: 1000, height: 900 });
     await page.goto('/');
     const sidebar = await page.locator(sidebarTestId);
     await expect(sidebar).toBeVisible();
-    // Compact width: should match Tailwind's sb-mobile:w-20 (5rem = 80px) unless overridden
-    // But per Sidebar.tsx, sb-compact:w-56, sb-mobile:w-20, so between 900 and 1200px, width should be 224px
-    await expect(sidebar).toHaveCSS('width', '224px');
+    // Tablet width: Tailwind's tablet:w-52 (13rem = 208px)
+    await expect(sidebar).toHaveCSS('width', '208px');
   });
 
   test('Sidebar is in mobile state at <900px', async ({ page }) => {
@@ -40,7 +39,7 @@ test.describe('Sidebar Responsive Breakpoints', () => {
     await page.goto('/');
     const sidebar = await page.locator(sidebarTestId);
     await expect(sidebar).toBeVisible();
-    // Mobile width: Tailwind's sb-mobile:w-20 (5rem = 80px)
-    await expect(sidebar).toHaveCSS('width', '80px');
+    // Mobile width: Tailwind's w-16 (4rem = 64px)
+    await expect(sidebar).toHaveCSS('width', '64px');
   });
 });
