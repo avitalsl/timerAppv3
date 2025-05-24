@@ -51,6 +51,11 @@ const calculateExpectedPixelGeometry = (
   };
 };
 
+// Helper function to generate a random coordinate
+const getRandomCoordinate = (max: number): number => {
+  return Math.floor(Math.random() * (max + 1));
+};
+
 /**
  * E2E tests for GridLayout component
  * Covers: adding components, moving components, saving changes, loading preview, layout in activemeeting
@@ -173,23 +178,34 @@ test.describe('GridLayout SetupScreen', () => {
     // Move each widget to a new position (simulate drag-and-drop)
     // We'll move each widget by a unique offset so their transforms change
     // Timer is often static, so skip if not draggable
-    const moveOffsets = {
-      timer: { x: 0, y: 0 }, // leave timer in place (if static)
-      participants: { x: 120, y: 0 },
-      links: { x: 0, y: 120 },
-      notes: { x: 120, y: 120 },
-      agenda: { x: 240, y: 0 },
-      sprintGoals: { x: 0, y: 240 },
-      checklist: { x: 240, y: 120 }
-    };
+    // We'll move each widget by a unique offset so their transforms change
+    // Timer is often static, so skip if not draggable
+    // (moveOffsets object removed)
+
     for (const id of widgetIds) {
       const widget = page.locator(`[data-testid="grid-layout-item-${id}"]`);
-      const { x, y } = moveOffsets[id as keyof typeof moveOffsets];
+      
+      // Generate random base offsets for the drag operation.
+      // These values determine how far the widget is dragged from its original position.
+      // A range up to 300px should be enough to move it across several grid cells.
+      const randomBaseX = getRandomCoordinate(300);
+      const randomBaseY = getRandomCoordinate(300);
+      
+      // The targetPosition for dragTo is relative to the widget's own top-left corner.
+      // We add 10 to maintain consistency with the previous hardcoded logic,
+      // though this specific +10 offset is somewhat arbitrary.
+      const targetX = randomBaseX + 10;
+      const targetY = randomBaseY + 10;
+
       // Try/catch in case widget is not draggable
       try {
-        await widget.dragTo(widget, { force: true, targetPosition: { x: x + 10, y: y + 10 } });
+        // Drag the widget to a new target position.
+        // The 'target' is the widget itself, so targetPosition is relative to its own top-left.
+        await widget.dragTo(widget, { force: true, targetPosition: { x: targetX, y: targetY } });
       } catch (e) {
-        // Ignore drag errors for non-draggable widgets
+        // Log a warning if a widget cannot be dragged (e.g., if it's static).
+        console.warn(`[TEST WARNING] Could not drag widget ${id}: ${(e as Error).message}`);
+        // Continue with the test even if a widget can't be moved.
       }
     }
 
@@ -209,8 +225,6 @@ test.describe('GridLayout SetupScreen', () => {
     // gridTestId is '[data-testid="grid-layout"]' which is the outer div of GridLayout component
     const rglInternalContainerSetupLocator = page.locator(gridTestId).locator('[data-testid="grid-layout-container"]');
     await expect(rglInternalContainerSetupLocator).toBeVisible();
-
-    await page.pause();
 
     // Allow some time for layout changes and console logs to be processed after reload
     await page.waitForTimeout(500); // Adjust if necessary
@@ -248,7 +262,7 @@ test.describe('GridLayout SetupScreen', () => {
     // Use the helper function to verify setup screen geometries
     // Check X, but not Y (due to compaction)
     await verifyWidgetGeometries(rglInternalContainerSetupLocator, savedSetupLayoutItems, allWidgetIds, true);
-
+    await page.pause();
     // Click the "Start Meeting" button
     await page.locator('[data-testid="start-meeting-button"]').click();
 
