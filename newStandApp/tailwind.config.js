@@ -6,6 +6,10 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        'tablet': '900px',
+        'desktop': '1200px', // Large desktop and up   // Tablet and up
+      },
       fontFamily: {
         opensans: [
           'Open Sans',

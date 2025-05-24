@@ -19,6 +19,17 @@ Application navigation sidebar.
   - Logo container: `sidebar-logo`
   - Navigation links: `sidebar-nav-link-{path}` (e.g., `sidebar-nav-link-home`, `sidebar-nav-link-meeting`)
 
+#### Responsive States
+- **Standard**: viewport ≥1200px (`sb-compact` breakpoint and up)
+- **Compact**: 900px–1199px (`sb-mobile` to `sb-compact`)
+- **Mobile**: <900px (below `sb-mobile`)
+
+**Testing/Automation Guidance:**
+- Use viewport resizing to test each state; the Sidebar width and layout will change according to Tailwind's custom breakpoints.
+- The Sidebar does not expose a dynamic attribute for state; verify state by checking the width/class and visual layout at each breakpoint.
+- All states use `data-testid="component-sidebar"` for selection.
+
+
 ### Header
 Application top header bar.
 - Component: `components/Header.tsx`

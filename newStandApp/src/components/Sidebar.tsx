@@ -13,14 +13,35 @@ import { useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {
   const navigate = useNavigate();
+
+  // 
+  // Sidebar responsive states:
+  // - Desktop: ≥1200px (desktop)
+  // - Tablet: 900px–1199px (tablet)
+  // - Mobile: <900px (default)
+  // Uses custom Tailwind breakpoints defined in tailwind.config.js.
+  //
+  // To test responsive states:
+  // - Desktop: viewport ≥1200px (desktop)
+  // - Tablet: 900px–1199px (tablet)
+  // - Mobile: <900px (default)
+  // Use viewport resizing and Tailwind classes to verify state.
+  //
+
   return (
-    <aside 
-      className="w-16 md:w-64 bg-primary-dark text-white flex flex-col" 
+    <aside
+      className="
+        w-16              // Mobile: <900px
+        tablet:w-52       // Tablet: 900px–1199px
+        desktop:w-56      // Desktop: ≥1200px
+        bg-primary-dark text-white flex flex-col
+        transition-all duration-300
+      "
       data-testid="component-sidebar"
     >
       <div className="p-4 flex items-center justify-center md:justify-start" data-testid="sidebar-logo">
         <ClockIcon className="h-8 w-8" />
-        <span className="ml-2 text-xl font-bold hidden md:block">
+        <span className="ml-2 text-xl font-bold hidden tablet:block">
           MeetingTime
         </span>
       </div>
@@ -34,7 +55,7 @@ const Sidebar = () => {
           data-testid="sidebar-nav-link-home"
         >
           <SettingsIcon className="h-5 w-5" />
-          <span className="ml-3 hidden md:block">Customize Meeting</span>
+          <span className="ml-3 hidden tablet:block">Customize Meeting</span>
         </NavLink>
         <NavLink
           to="/meeting"
@@ -44,7 +65,7 @@ const Sidebar = () => {
           data-testid="sidebar-nav-link-meeting"
         >
           <LayoutDashboardIcon className="h-5 w-5" />
-          <span className="ml-3 hidden md:block">Timer Setup</span>
+          <span className="ml-3 hidden tablet:block">Timer Setup</span>
         </NavLink>
         <NavLink
           to="/participants"
@@ -54,7 +75,7 @@ const Sidebar = () => {
           data-testid="sidebar-nav-link-participants"
         >
           <UsersIcon className="h-5 w-5" />
-          <span className="ml-3 hidden md:block">Participants</span>
+          <span className="ml-3 hidden tablet:block">Participants</span>
         </NavLink>
         <div
   className="flex items-center py-3 px-4 cursor-pointer hover:bg-[#2c4066] hover:text-white transition-colors"
@@ -62,11 +83,11 @@ const Sidebar = () => {
   onClick={() => navigate('/kickoff')}
 >
   <CalendarIcon className="h-5 w-5" />
-  <span className="ml-3 hidden md:block">Kickoff</span>
+  <span className="ml-3 hidden tablet:block">Kickoff</span>
 </div>
         <div className="flex items-center py-3 px-4 text-gray-400">
           <HistoryIcon className="h-5 w-5" />
-          <span className="ml-3 hidden md:block">History</span>
+          <span className="ml-3 hidden tablet:block">History</span>
         </div>
       </nav>
     </aside>
