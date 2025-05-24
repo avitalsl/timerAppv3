@@ -34,74 +34,52 @@ const SetupScreen = () => {
 
   // Handle component selection/deselection
   const handleToggleComponent = (componentId: string, selected: boolean) => {
+    // Clone current layouts and components
+    const updatedLayouts = { ...layoutConfig.layouts };
+    const updatedComponents = { ...layoutConfig.components };
+
+    // Remove any existing layout items for this component from all breakpoints
+    Object.keys(updatedLayouts).forEach(breakpoint => {
+      updatedLayouts[breakpoint] = updatedLayouts[breakpoint].filter(item => item.i !== componentId);
+    });
+
     if (selected) {
-      setSelectedComponents([...selectedComponents, componentId])
-    } else {
-      setSelectedComponents(selectedComponents.filter(id => id !== componentId))
-    }
-    
-    // Update layout configuration
-    const updatedComponents = { ...layoutConfig.components }
-    
-    // If component exists, update visibility
-    if (updatedComponents[componentId]) {
-      updatedComponents[componentId].visible = selected
-    } 
-    // If component doesn't exist yet, add it with default config
-    else if (selected) {
-      const componentDef = COMPONENT_DEFINITIONS.find(def => def.id === componentId)
+      setSelectedComponents([...selectedComponents, componentId]);
+      // Add new layout item with correct sizing
+      const componentDef = COMPONENT_DEFINITIONS.find(def => def.id === componentId);
       if (componentDef) {
+        Object.keys(updatedLayouts).forEach(breakpoint => {
+          updatedLayouts[breakpoint].push({
+            i: componentId,
+            x: 0,
+            y: 1000, // or appropriate y
+            w: componentDef.defaultSize.w,
+            h: componentDef.defaultSize.h,
+            minW: componentDef.minSize.w,
+            minH: componentDef.minSize.h,
+            ...(componentDef.maxSize ? {
+              maxW: componentDef.maxSize.w,
+              maxH: componentDef.maxSize.h
+            } : {}),
+            static: false
+          });
+        });
         updatedComponents[componentId] = {
           type: componentDef.type,
           visible: true
-        }
-        
-        // Add the component to the layout with automatic arrangement
-        // With vertical compaction and dragability disabled, the exact x,y coordinates matter less
-        // as react-grid-layout will automatically arrange them
-        const newLayoutItems = Object.entries(layoutConfig.layouts).reduce(
-          (layouts, [breakpoint, items]) => {
-            // For automatic arrangement, we just need to add the component with its size
-            // The 'x' coordinate is set to 0, but this will be arranged automatically
-            // The 'y' coordinate is set to a high number to attempt to place it at the bottom,
-            // but the compaction algorithm will move it up as needed
-            const placementY = 1000; // A high number that will be adjusted by compaction
-            const placementX = 0;    // Will be arranged automatically
-            
-            layouts[breakpoint] = [
-              ...items,
-              {
-                i: componentId,
-                x: placementX,
-                y: placementY,
-                w: componentDef.defaultSize.w,
-                h: componentDef.defaultSize.h,
-                minW: componentDef.minSize.w,
-                minH: componentDef.minSize.h,
-                ...(componentDef.maxSize ? {
-                  maxW: componentDef.maxSize.w,
-                  maxH: componentDef.maxSize.h
-                } : {}),
-                static: false
-              }
-            ]
-            return layouts
-          },
-          {} as { [key: string]: LayoutItem[] }
-        )
-        
-        saveLayout({
-          layouts: { ...layoutConfig.layouts, ...newLayoutItems },
-          components: updatedComponents
-        })
-        return
+        };
       }
+    } else {
+      setSelectedComponents(selectedComponents.filter(id => id !== componentId));
+      // Remove the component from the components map
+      delete updatedComponents[componentId];
     }
-    
+
     saveLayout({
       ...layoutConfig,
+      layouts: updatedLayouts,
       components: updatedComponents
-    })
+    });
   }
   
   // Handle layout changes from GridLayout component (only lg layout)
@@ -179,10 +157,6 @@ const SetupScreen = () => {
             )}
           </div>
         </div>
-        
-        {/* Participants section removed as it's now available as a configurable component in the layout */}
-        
-
       </div>
     </div>
   )

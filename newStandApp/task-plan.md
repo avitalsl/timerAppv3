@@ -33,6 +33,111 @@ When a user adds a new component to the layout, it should be placed to the right
 
 ---
 
+# Feature Plan: E2E Testing for GridLayout in SetupScreen and MeetingOverlay
+
+## E2E Test Plan: GridLayout (SetupScreen & MeetingOverlay)
+
+### SetupScreen (Editable Configuration)
+
+**Objective:**
+- Verify users can add, remove, and persist widgets using checkboxes, and reset the layout.
+
+**Test Scenarios:**
+1. **Initial State**
+   - Grid layout is visible.
+   - Only default widgets (if any) are present.
+2. **Add Widgets**
+   - Check each widget's checkbox (e.g., Timer, Participants).
+   - Assert widget appears in grid.
+3. **Remove Widgets**
+   - Uncheck widget checkbox.
+   - Assert widget disappears from grid.
+4. **Persistence**
+   - After changes, click save.
+   - Reload page.
+   - Assert only selected widgets are present.
+5. **Reset Layout**
+   - Click reset.
+   - Assert layout returns to default (e.g., only Timer).
+6. **(Optional) Drag-and-Drop**
+   - Drag widget, save, reload, verify position.
+
+**Acceptance Criteria:**
+- All widget add/remove actions work via checkboxes.
+- Layout changes persist after save/reload.
+- Reset returns layout to default.
+- (Optional) Widget positions persist if re-ordered.
+
+---
+
+### MeetingOverlay (Read-Only Presentation)
+
+**Objective:**
+- Verify overlay displays saved layout, is read-only, and can be opened/closed.
+
+**Test Scenarios:**
+1. **Open Overlay**
+   - Click “Start Meeting” button.
+   - Assert overlay appears.
+2. **Correct Widgets Displayed**
+   - Assert widgets match last saved config.
+   - No extra widgets present.
+3. **No Edit Controls**
+   - Assert checkboxes, add, save, reset buttons are not visible.
+4. **Close Overlay**
+   - Click close button.
+   - Assert overlay disappears.
+5. **(Optional) Accessibility/Visual**
+   - Assert overlay has correct ARIA attributes and styling.
+
+**Acceptance Criteria:**
+- Overlay always matches saved layout.
+- No edit controls in overlay.
+- Overlay can be opened/closed reliably.
+
+
+## Objective
+Ensure the GridLayout component works as intended in both configuration (SetupScreen) and presentation (MeetingOverlay) modes, with separate E2E tests reflecting their distinct behaviors.
+
+## Locations & Modes
+- **SetupScreen**: Editable configuration mode, users can add/move/remove widgets, save layout.
+- **MeetingOverlay**: Read-only mode, displays the agreed layout during an active meeting, no edit controls.
+
+## Similarities
+- Both render the GridLayout component with the same widgets and layout structure.
+- Both display widgets as per the saved configuration.
+
+## Differences
+| Aspect                | SetupScreen (Config)         | MeetingOverlay (Overlay)   |
+|-----------------------|------------------------------|----------------------------|
+| Editing               | Allowed (full controls)      | Not allowed (read-only)    |
+| Controls (add/save)   | Visible and enabled          | Hidden/disabled            |
+| Entry Point           | `/` (or setup route)         | Overlay, via button        |
+| Props to GridLayout   | `disableLayoutControls=false`<br>`inMeetingOverlay=false` | `disableLayoutControls=true`<br>`inMeetingOverlay=true` |
+| Data Source           | Editable config, user changes| Saved config, read-only    |
+| Persistence           | Can change and save          | Displays last saved        |
+
+## Test Scenarios
+
+### A. SetupScreen Test
+- Navigate to the setup/configuration page.
+- Add, move, and remove widgets.
+- Save the layout.
+- Reload and verify the layout persists.
+- Ensure controls (add, save, reset) are visible and functional.
+
+### B. MeetingOverlay Test
+- Trigger the overlay (e.g., click “Start Meeting” button).
+- Verify the overlay appears and displays the correct layout (as saved from setup).
+- Ensure no controls for editing are present.
+- Overlay can be closed.
+- Widgets are displayed as per the saved configuration.
+
+## Acceptance Criteria
+- SetupScreen: Layout is editable, controls work, persistence is correct.
+- MeetingOverlay: Layout is read-only, matches saved config, no edit controls.
+
+
 # Feature Plan: Custom Responsive Breakpoints for Sidebar Component
 
 ## Objective
