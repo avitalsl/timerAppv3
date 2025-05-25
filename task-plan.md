@@ -444,3 +444,49 @@ Create a Participants page/component that will be rendered when the user clicks 
 - Add end-to-end and unit tests for navigation and rendering.
 - Document test IDs in `screens.md`.
 
+
+## 📄 Page: Kickoff (Existing)
+
+This page allows the user to define how the meeting should start. The requirements below describe the functionality to be implemented within this existing page.
+
+---
+
+### 🎯 Purpose
+
+Enable users to choose a kickoff style for their meeting. Options include starting immediately or starting with a storytelling session.
+
+---
+
+### 🖼️ UI Layout
+
+**1. Kickoff Mode Selector**
+- Label: `How should the meeting start?`
+- Type: Radio button group
+- Options:
+  - `Get Down to Business` → No additional config.
+  - `Story Time` → Reveals Story Time Options below.
+
+**2. Story Time Options** *(only shown if "Story Time" is selected)*
+- Label: `Choose storyteller method:`
+- Type: Radio button group
+- Options:
+  - `Randomize Storyteller`
+  - `Choose Storyteller`
+
+---
+
+### 💾 Data Storage (LocalStorage)
+
+- Key: `kickoffSetting`
+- Value format:
+```json
+{
+  "mode": "getDownToBusiness" | "storyTime",
+  "storyOption": "random" | "manual" | null
+}
+```
+
+### Behavior Notes
+	•	This is a UI-only implementation.
+	•	When user changes selections, the setting should be saved in localStorage under the kickoffSetting key.
+	•	No backend communication or other side effects are required.
