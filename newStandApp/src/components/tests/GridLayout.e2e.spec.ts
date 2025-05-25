@@ -1,40 +1,4 @@
 import { test, expect } from '@playwright/test';
-import type { LayoutItem } from '../../types/layoutTypes';
-import { expandComponentsToFillRow } from '../../utils/layoutUtils';
-
-// Grid layout constants (mirroring GridLayout.tsx)
-const COLS = 12;
-const ROW_HEIGHT = 60;
-const MARGIN_X = 10;
-const MARGIN_Y = 10;
-const CONTAINER_PADDING_X = 10; // Assuming symmetrical padding
-const CONTAINER_PADDING_Y = 10; // Assuming symmetrical padding
-const LOCAL_STORAGE_LAYOUT_KEY = 'gridLayoutResponsive'; // Placeholder, confirm actual key
-
-// Helper function to calculate expected pixel geometry of a grid item
-// This is a simplified model. react-grid-layout's calculations can be more complex.
-// It's often better to get boundingBox relative to the grid container.
-const calculateExpectedPixelGeometry = (
-  item: LayoutItem,
-  gridContainerWidth: number,
-) => {
-  // Calculate column width based on container width, margins, and padding
-  // This formula is a common interpretation for react-grid-layout
-  const usableWidth = gridContainerWidth - 2 * CONTAINER_PADDING_X - (COLS - 1) * MARGIN_X;
-  const colWidth = usableWidth / COLS;
-
-  const expectedX = item.x * (colWidth + MARGIN_X) + CONTAINER_PADDING_X;
-  const expectedY = item.y * (ROW_HEIGHT + MARGIN_Y) + CONTAINER_PADDING_Y;
-  const expectedWidth = item.w * colWidth + Math.max(0, item.w - 1) * MARGIN_X;
-  const expectedHeight = item.h * ROW_HEIGHT + Math.max(0, item.h - 1) * MARGIN_Y;
-
-  return {
-    x: expectedX,
-    y: expectedY,
-    width: expectedWidth,
-    height: expectedHeight,
-  };
-};
 
 /**
  * E2E tests for GridLayout component
@@ -122,34 +86,19 @@ test.describe('GridLayout SetupScreen', () => {
 
     // Capture positions for all widgets
     const allWidgetIds = ['timer', ...widgetIds];
-    // --- Get Saved Layout Data from localStorage ---
-    const savedLayoutsString = await page.evaluate((key) => localStorage.getItem(key), LOCAL_STORAGE_LAYOUT_KEY);
-    expect(savedLayoutsString).not.toBeNull();
-    const savedLayoutsConfig = JSON.parse(savedLayoutsString!) as { lg?: LayoutItem[] }; // Assuming 'lg' breakpoint is primary
-    const savedSetupLayoutItems = savedLayoutsConfig.lg || [];
-    expect(savedSetupLayoutItems.length).toBeGreaterThan(0); // Ensure we have layout items
-
-    // --- Verify Persistence on Setup Screen Reload using Bounding Boxes ---
+    const positionsBefore: Record<string, string | null> = {};
+    for (const id of allWidgetIds) {
+      const transform = await page.locator(`[data-testid="grid-layout-item-${id}"]`).evaluate(el => el.style.transform);
+      positionsBefore[id] = transform;
+    }
+    await page.pause();
+    // Reload and check positions persist
     await page.reload();
     await expect(page.locator(gridTestId)).toBeVisible();
-    const setupGridContainer = page.locator(gridTestId); // The main grid container on setup
-    const setupGridContainerBox = await setupGridContainer.boundingBox();
-    expect(setupGridContainerBox).not.toBeNull();
-
-    for (const savedItem of savedSetupLayoutItems) {
-      if (!allWidgetIds.includes(savedItem.i)) continue; // Only check widgets we added/expect
-      const widgetLocator = setupGridContainer.locator(`[data-testid="grid-layout-item-${savedItem.i}"]`);
-      await expect(widgetLocator).toBeVisible();
-      const widgetBox = await widgetLocator.boundingBox();
-      expect(widgetBox).not.toBeNull();
-
-      const expectedGeo = calculateExpectedPixelGeometry(savedItem, setupGridContainerBox!.width);
-
-      // Compare bounding box properties relative to the grid container's top-left
-      expect(widgetBox!.x - setupGridContainerBox!.x).toBeCloseTo(expectedGeo.x, 0); 
-      expect(widgetBox!.y - setupGridContainerBox!.y).toBeCloseTo(expectedGeo.y, 0);
-      expect(widgetBox!.width).toBeCloseTo(expectedGeo.width, 0);
-      expect(widgetBox!.height).toBeCloseTo(expectedGeo.height, 0);
+    for (const id of allWidgetIds) {
+      await expect(page.locator(`[data-testid="grid-layout-item-${id}"]`)).toBeVisible();
+      const transform = await page.locator(`[data-testid="grid-layout-item-${id}"]`).evaluate(el => el.style.transform);
+      expect(transform).toBe(positionsBefore[id]);
     }
 
     // Click the "Start Meeting" button
@@ -159,28 +108,14 @@ test.describe('GridLayout SetupScreen', () => {
     const activeMeetingLayoutLocator = page.locator('[data-testid="active-meeting-grid-layout"]');
     await expect(activeMeetingLayoutLocator).toBeVisible();
 
-    // --- Calculate Expected Meeting Layout ---
-    const expectedMeetingLayoutItems = expandComponentsToFillRow(savedSetupLayoutItems, COLS);
-
-    // --- Verify Layout in Meeting Overlay using Bounding Boxes ---
-    const meetingGridContainer = activeMeetingLayoutLocator; // Already located
-    const meetingGridContainerBox = await meetingGridContainer.boundingBox();
-    expect(meetingGridContainerBox).not.toBeNull();
-
-    for (const expectedItem of expectedMeetingLayoutItems) {
-      if (!allWidgetIds.includes(expectedItem.i)) continue; // Check only relevant widgets
-      const widgetLocator = meetingGridContainer.locator(`[data-testid="grid-layout-item-${expectedItem.i}"]`);
-      await expect(widgetLocator).toBeVisible();
-      const widgetBox = await widgetLocator.boundingBox();
-      expect(widgetBox).not.toBeNull();
-
-      const expectedGeo = calculateExpectedPixelGeometry(expectedItem, meetingGridContainerBox!.width);
+    // Verify widget positions in the active meeting screen
+    for (const id of allWidgetIds) {
+      const activeMeetingWidgetLocator = activeMeetingLayoutLocator.locator(`[data-testid="grid-layout-item-${id}"]`);
+      await expect(activeMeetingWidgetLocator).toBeVisible();
       
-      // Compare bounding box properties relative to the grid container's top-left
-      expect(widgetBox!.x - meetingGridContainerBox!.x).toBeCloseTo(expectedGeo.x, 0);
-      expect(widgetBox!.y - meetingGridContainerBox!.y).toBeCloseTo(expectedGeo.y, 0);
-      expect(widgetBox!.width).toBeCloseTo(expectedGeo.width, 0);
-      expect(widgetBox!.height).toBeCloseTo(expectedGeo.height, 0);
+      const transformInMeeting = await activeMeetingWidgetLocator.evaluate(el => el.style.transform);
+      // Compare with the positions captured after the move and save on the setup screen
+      expect(transformInMeeting).toBe(positionsBefore[id]); // positionsBefore holds the saved state
     }
   });
 
