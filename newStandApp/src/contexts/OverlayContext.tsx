@@ -1,5 +1,11 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useMemo } from 'react';
 import type { ReactNode } from 'react';
+import { useMeeting, type StoredTimerConfig, type Participant, type KickoffSetting } from './MeetingContext';
+
+// LocalStorage Keys
+const KICKOFF_SETTING_KEY = 'kickoffSetting';
+const TIMER_SETUP_STORAGE_KEY = 'timerSetupConfig';
+const PARTICIPANTS_STORAGE_KEY = 'participantsList';
 
 // Define the shape of our context
 interface OverlayContextType {
@@ -24,18 +30,70 @@ interface OverlayProviderProps {
  */
 export const OverlayProvider: React.FC<OverlayProviderProps> = ({ children }) => {
   const [isOverlayVisible, setIsOverlayVisible] = useState<boolean>(false);
+  const { dispatch: meetingDispatch } = useMeeting(); // Get dispatch from MeetingContext
 
-  const showOverlay = () => setIsOverlayVisible(true);
-  const hideOverlay = () => setIsOverlayVisible(false);
-  const toggleOverlay = () => setIsOverlayVisible(prev => !prev);
+  const showOverlay = () => {
+    console.log('[OverlayContext] showOverlay called');
+    // Load configurations from localStorage
+    let storedTimerConfig: StoredTimerConfig = {
+      mode: 'fixed',
+      totalDurationMinutes: 15,
+      allowExtension: false,
+    };
+    try {
+      const rawTimerConfig = localStorage.getItem(TIMER_SETUP_STORAGE_KEY);
+      if (rawTimerConfig) storedTimerConfig = JSON.parse(rawTimerConfig);
+    } catch (e) { console.error('Error parsing timerSetupConfig from localStorage', e); }
+
+    let participantsList: Participant[] = [];
+    try {
+      const rawParticipants = localStorage.getItem(PARTICIPANTS_STORAGE_KEY);
+      if (rawParticipants) participantsList = JSON.parse(rawParticipants);
+      if (!Array.isArray(participantsList)) participantsList = []; // Ensure it's an array
+    } catch (e) { console.error('Error parsing participantsList from localStorage', e); }
+
+    let kickoffSettings: KickoffSetting = {
+      mode: 'getDownToBusiness',
+      storyOption: null,
+    };
+    try {
+      const rawKickoff = localStorage.getItem(KICKOFF_SETTING_KEY);
+      if (rawKickoff) kickoffSettings = JSON.parse(rawKickoff);
+    } catch (e) { console.error('Error parsing kickoffSetting from localStorage', e); }
+
+    // Dispatch START_MEETING action
+    meetingDispatch({
+      type: 'START_MEETING',
+      payload: {
+        storedTimerConfig,
+        participants: participantsList.filter(p => p.included), // Ensure only included participants are passed
+        kickoffSettings,
+      },
+    });
+    setIsOverlayVisible(true);
+  };
+
+  const hideOverlay = () => {
+    console.log('[OverlayContext] hideOverlay called');
+    meetingDispatch({ type: 'END_MEETING' });
+    setIsOverlayVisible(false);
+  };
+
+  const toggleOverlay = () => {
+    if (isOverlayVisible) {
+      hideOverlay();
+    } else {
+      showOverlay();
+    }
+  };
 
   // Memoize the context value to prevent unnecessary re-renders
-  const contextValue = React.useMemo(() => ({
+  const contextValue = useMemo(() => ({
     isOverlayVisible,
     showOverlay,
     hideOverlay,
     toggleOverlay
-  }), [isOverlayVisible]);
+  }), [isOverlayVisible, meetingDispatch]); // Added meetingDispatch to dependencies of useMemo
 
   return (
     <OverlayContext.Provider value={contextValue}>

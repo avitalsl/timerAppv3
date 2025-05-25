@@ -106,7 +106,7 @@ const SetupScreen = () => {
   }
 
   return (
-    <div className="w-full" data-testid="screen-setup">
+    <div className="w-full max-w-[1200px] mx-auto" data-testid="screen-setup">
       <div className="bg-white rounded-lg shadow-md p-6">
         <div data-testid="setup-layout-config-section">
           <div className="flex items-center justify-between mb-3">

@@ -10,21 +10,24 @@ import SetupScreen from './pages/SetupScreen'
 import TimerSetup from './pages/TimerSetup'
 import Participants from './pages/Participants'
 import KickoffScreen from './components/KickoffScreen'
+import { MeetingProvider } from './contexts/MeetingContext';
 
 function App() {
   return (
     <Router>
-      <div className="w-full min-h-screen bg-gray-100">
-        <Routes>
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<SetupScreen />} />
-            <Route path="meeting" element={<TimerSetup />} />
-            <Route path="participants" element={<Participants />} />
-            <Route path="kickoff" element={<KickoffScreen />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-          </Route>
-        </Routes>
-      </div>
+      <MeetingProvider>
+        <div className="w-full min-h-screen bg-gray-100">
+          <Routes>
+            <Route path="/" element={<MainLayout />}>
+              <Route index element={<SetupScreen />} />
+              <Route path="meeting" element={<TimerSetup />} />
+              <Route path="participants" element={<Participants />} />
+              <Route path="kickoff" element={<KickoffScreen />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Routes>
+        </div>
+      </MeetingProvider>
     </Router>
   )
 }

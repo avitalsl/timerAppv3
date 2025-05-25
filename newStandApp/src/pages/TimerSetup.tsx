@@ -56,7 +56,7 @@ const TimerSetup: React.FC = () => {
   const isValidExtension = (val: number) => val > 0 && Number.isFinite(val);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6" data-testid="screen-timer-setup">
+    <div className="bg-white rounded-lg shadow-md p-6 max-w-[1200px] mx-auto" data-testid="screen-timer-setup">
       <div className="flex items-center justify-between mb-3">
   <div className="flex items-center">
     <Clock1Icon className="h-5 w-5 text-gray-500 mr-2" />

@@ -83,7 +83,7 @@ const KickoffScreen: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6" data-testid="kickoff-screen-card">
+    <div className="bg-white rounded-lg shadow-md p-6 max-w-[1200px] mx-auto" data-testid="kickoff-screen-card">
       <h2 className="text-xl font-semibold mb-4">Kickoff Settings</h2>
 
       <div className="mb-6" data-testid="kickoff-mode-selector">

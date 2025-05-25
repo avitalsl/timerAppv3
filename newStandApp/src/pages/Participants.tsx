@@ -30,6 +30,7 @@ const [participants, setParticipants] = useState<Participant[]>(getInitialPartic
 
 // Save to localStorage whenever participants changes
 React.useEffect(() => {
+  console.log('Participants State:', JSON.parse(JSON.stringify(participants))); // Log a deep copy
   localStorage.setItem(localStorageKey, JSON.stringify(participants));
 }, [participants]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -60,7 +61,7 @@ React.useEffect(() => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6" data-testid="screen-participants">
+    <div className="bg-white rounded-lg shadow-md p-6 max-w-[1200px] mx-auto" data-testid="screen-participants">
       <div className="flex items-center mb-6"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path strokeLinecap="round" strokeLinejoin="round" d="M23 21v-2a4 4 0 0 0-3-3.87" /><path strokeLinecap="round" strokeLinejoin="round" d="M16 3.13a4 4 0 0 1 0 7.75" /></svg><h2 className="text-lg font-medium text-gray-700">Participants</h2></div>
       <div className="flex gap-2 mb-4" data-testid="participants-add-section">
         <input
@@ -72,7 +73,7 @@ React.useEffect(() => {
           }}
           onKeyDown={handleInputKeyDown}
           placeholder="Enter participant name"
-          className="border rounded px-2 py-1 flex-1"
+          className="border rounded px-2 py-1 max-w-[900px]"
           data-testid="input-participant-name"
         />
         <button
@@ -89,7 +90,7 @@ React.useEffect(() => {
         {/* Selected Participants */}
         <div>
           <h3 className="text-lg font-medium text-gray-700">Selected Participants</h3>
-          <ul className="space-y-2 bg-white rounded py-3 px-0 min-h-[120px]" data-testid="selected-participants-list">
+          <ul className="space-y-2 bg-white rounded py-3 px-0 min-h-[120px] max-w-[480px]" data-testid="selected-participants-list">
             {(participants.filter(p => p.included).length === 0) ? (
               <li className="text-gray-400 text-center">No participants selected.</li>
             ) : (
@@ -113,7 +114,7 @@ React.useEffect(() => {
         {/* Optional Participants */}
         <div>
           <h3 className="text-lg font-medium text-gray-700">Optional Participants</h3>
-          <ul className="space-y-2 bg-white rounded py-3 px-0 min-h-[120px]" data-testid="optional-participants-list">
+          <ul className="space-y-2 bg-white rounded py-3 px-0 min-h-[120px] max-w-[480px]" data-testid="optional-participants-list">
             {(filteredParticipants.filter(p => !p.included).length === 0) ? (
               <li className="text-gray-400 text-center">No optional participants left.</li>
             ) : (

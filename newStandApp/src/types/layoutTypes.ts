@@ -54,8 +54,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     id: 'timer',
     type: ComponentType.TIMER,
     label: 'Timer',
-    defaultSize: { w: 4, h: 2 },
-    minSize: { w: 4, h: 2 },
+    defaultSize: { w: 4, h: 3 },
+    minSize: { w: 4, h: 3 },
     isRequired: true
   },
   {
@@ -106,7 +106,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
 export const DEFAULT_LAYOUT_CONFIG: LayoutConfiguration = {
   layouts: {
     lg: [
-      { i: 'timer', x: 0, y: 0, w: 4, h: 2, minW: 4, minH: 2, static: false }
+      { i: 'timer', x: 0, y: 0, w: 4, h: 3, minW: 4, minH: 3, static: false }
     ]
   },
   components: {

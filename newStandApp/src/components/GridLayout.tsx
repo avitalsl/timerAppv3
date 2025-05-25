@@ -9,6 +9,8 @@ import { expandComponentsToFillRow } from '../utils/layoutUtils';
 // Import widget components
 import TimerWidget from './widgets/TimerWidget';
 import ParticipantListWidget from './widgets/ParticipantListWidget';
+import { useMeeting } from '../contexts/MeetingContext'; // Import useMeeting
+import type { Participant } from '../contexts/MeetingContext'; // Import Participant type
 import LinksListWidget from './widgets/LinksListWidget';
 import NotesWidget from './widgets/NotesWidget';
 import AgendaWidget from './widgets/AgendaWidget';
@@ -18,12 +20,13 @@ import ChecklistWidget from './widgets/ChecklistWidget';
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 // Component mapping function
-const renderComponentWidget = (componentType: ComponentType) => {
+const renderComponentWidget = (componentType: ComponentType, meetingParticipants: Participant[]) => {
   switch (componentType) {
     case ComponentType.TIMER:
       return <TimerWidget />;
     case ComponentType.PARTICIPANTS:
-      return <ParticipantListWidget />;
+      // Assuming 'meeting' mode when rendered in GridLayout, no 'Add' button functionality here by default.
+      return <ParticipantListWidget participants={meetingParticipants} mode="meeting" />;
     case ComponentType.LINKS:
       return <LinksListWidget />;
     case ComponentType.NOTES:
@@ -60,6 +63,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   disableLayoutControls = false,
   inMeetingOverlay = false
 }) => {
+  const { state: meetingState } = useMeeting(); // Get meeting state
   // Ref for the grid container
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState<number>(0);
@@ -173,7 +177,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
                   </div>
                 )}
                 <div className={`p-2 flex-grow overflow-auto${inMeetingOverlay ? ' border-l-4 border-primary-sand' : ''}`}>
-                  {renderComponentWidget(component.type)}
+                  {renderComponentWidget(component.type, meetingState.participants)}
                 </div>
               </div>
             ))}
