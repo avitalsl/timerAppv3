@@ -116,11 +116,7 @@ const SetupScreen = () => {
             </div>
 
             {/* GridLayout and mobile-specific layout message removed as layout is now fixed */}
-            {isLoaded ? (
-              <p className="text-sm text-gray-600 mt-4">
-                Selected features will be shown in a fixed layout during the meeting.
-              </p>
-            ) : (
+            {!isLoaded && (
               <p className="text-sm text-gray-600 mt-4">Loading configuration...</p>
             )}
           </div>

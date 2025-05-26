@@ -13,7 +13,7 @@ const ComponentPicker: React.FC<ComponentPickerProps> = ({
   onToggleComponent
 }) => {
   return (
-    <div className="bg-white rounded-lg p-3 shadow-sm" data-testid="component-picker">
+    <div className="bg-white rounded-lg p-3" data-testid="component-picker">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-medium text-gray-700">
           Layout Components

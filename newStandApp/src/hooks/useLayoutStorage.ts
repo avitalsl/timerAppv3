@@ -1,29 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import type { LayoutConfiguration } from '../types/layoutTypes';
 import { DEFAULT_LAYOUT_CONFIG } from '../types/layoutTypes';
 
-export function useLayoutStorage(key: string = 'meetingLayoutConfig') {
-  const [layoutConfig, setLayoutConfig] = useState<LayoutConfiguration>(DEFAULT_LAYOUT_CONFIG);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  // Load layout from localStorage on component mount
-  useEffect(() => {
-    try {
-      console.log('[useLayoutStorage] Attempting to load config from localStorage');
-      const storedConfig = localStorage.getItem(key);
-      if (storedConfig) {
-        const parsedConfig = JSON.parse(storedConfig);
-        console.log('[useLayoutStorage] Loaded config:', parsedConfig);
-        setLayoutConfig(parsedConfig);
-      } else {
-        console.log('[useLayoutStorage] No config found in localStorage');
-      }
-      setIsLoaded(true);
-    } catch (error) {
-      console.error('[useLayoutStorage] Error loading config:', error);
-      setIsLoaded(true);
+// Function to get initial layout config from localStorage
+function getInitialLayoutConfig(storageKey: string): { config: LayoutConfiguration; isLoaded: boolean } {
+  try {
+    console.log('[useLayoutStorage] Getting initial layout config');
+    const storedConfig = localStorage.getItem(storageKey);
+    if (storedConfig) {
+      const parsedConfig = JSON.parse(storedConfig);
+      console.log('[useLayoutStorage] Loaded config:', parsedConfig);
+      return { config: parsedConfig, isLoaded: true };
+    } else {
+      console.log('[useLayoutStorage] No config found in localStorage, using default');
     }
-  }, [key]);
+  } catch (error) {
+    console.error('[useLayoutStorage] Error loading config:', error);
+  }
+  return { config: DEFAULT_LAYOUT_CONFIG, isLoaded: true };
+}
+
+export function useLayoutStorage(key: string = 'meetingLayoutConfig') {
+  // Get initial state using useMemo to ensure it only runs once during initialization
+  const initialState = useMemo(() => getInitialLayoutConfig(key), [key]);
+  
+  // Initialize state with values from localStorage
+  const [layoutConfig, setLayoutConfig] = useState<LayoutConfiguration>(initialState.config);
+  const [isLoaded] = useState(initialState.isLoaded);
   // Save layout to localStorage whenever it changes
   const saveLayout = (newConfig: LayoutConfiguration) => {
     try {

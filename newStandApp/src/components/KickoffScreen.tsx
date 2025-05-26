@@ -10,47 +10,50 @@ const KICKOFF_SETTING_KEY = 'kickoffSetting';
 /**
  * KickoffScreen - Allows users to define how the meeting should start.
  */
-const KickoffScreen: React.FC = () => {
-  const [kickoffMode, setKickoffMode] = useState<'getDownToBusiness' | 'storyTime'>('getDownToBusiness');
-  const [storyOption, setStoryOption] = useState<'random' | 'manual' | null>(null);
-  const [isLoadedFromStorage, setIsLoadedFromStorage] = useState(false);
-
-  // Load settings from localStorage on mount
-  useEffect(() => {
-    console.log('[KickoffScreen] Load effect: START');
-    let finalKickoffMode: 'getDownToBusiness' | 'storyTime' = 'getDownToBusiness';
-    let finalStoryOption: 'random' | 'manual' | null = null;
-
+// Function to get initial kickoff settings from localStorage
+const getInitialKickoffSettings = (): { mode: 'getDownToBusiness' | 'storyTime'; storyOption: 'random' | 'manual' | null } => {
+  console.log('[KickoffScreen] Getting initial kickoff settings');
+  try {
     const storedSettings = localStorage.getItem(KICKOFF_SETTING_KEY);
-    console.log('[KickoffScreen] Load effect: storedSettings from localStorage:', storedSettings);
+    console.log('[KickoffScreen] storedSettings from localStorage:', storedSettings);
     if (storedSettings) {
-      try {
-        const parsedSettings: KickoffSetting = JSON.parse(storedSettings);
-        console.log('[KickoffScreen] Load effect: parsedSettings:', parsedSettings);
-        finalKickoffMode = parsedSettings.mode;
-        finalStoryOption = parsedSettings.storyOption;
-        if (finalKickoffMode === 'storyTime' && finalStoryOption === null) {
-          finalStoryOption = 'random'; 
-          console.log('[KickoffScreen] Load effect: Defaulted storyOption to random');
-        }
-      } catch (error) {
-        console.error('[KickoffScreen] Load effect: Error parsing kickoff settings:', error);
+      const parsedSettings: KickoffSetting = JSON.parse(storedSettings);
+      console.log('[KickoffScreen] parsedSettings:', parsedSettings);
+      let finalStoryOption = parsedSettings.storyOption;
+      
+      // Ensure storyOption is valid when mode is storyTime
+      if (parsedSettings.mode === 'storyTime' && finalStoryOption === null) {
+        finalStoryOption = 'random';
+        console.log('[KickoffScreen] Defaulted storyOption to random');
       }
+      
+      return {
+        mode: parsedSettings.mode,
+        storyOption: finalStoryOption
+      };
     }
-    console.log(`[KickoffScreen] Load effect: Setting state - kickoffMode: ${finalKickoffMode}, storyOption: ${finalStoryOption}`);
-    setKickoffMode(finalKickoffMode);
-    setStoryOption(finalStoryOption);
-    setIsLoadedFromStorage(true); 
-    console.log('[KickoffScreen] Load effect: END, isLoadedFromStorage set to true');
-  }, []); // Empty dependency array: runs once on mount
+  } catch (error) {
+    console.error('[KickoffScreen] Error parsing kickoff settings:', error);
+  }
+  
+  // Default settings if localStorage is empty or invalid
+  return {
+    mode: 'getDownToBusiness',
+    storyOption: null
+  };
+};
 
-  // Save settings to localStorage when they change, but only after initial load attempt
+const KickoffScreen: React.FC = () => {
+  // Get initial settings from localStorage
+  const initialSettings = React.useMemo(() => getInitialKickoffSettings(), []);
+  
+  // Initialize state with values from localStorage
+  const [kickoffMode, setKickoffMode] = useState<'getDownToBusiness' | 'storyTime'>(initialSettings.mode);
+  const [storyOption, setStoryOption] = useState<'random' | 'manual' | null>(initialSettings.storyOption);
+
+  // Save settings to localStorage when they change
   useEffect(() => {
-    console.log(`[KickoffScreen] Save effect: START - isLoaded: ${isLoadedFromStorage}, mode: ${kickoffMode}, option: ${storyOption}`);
-    if (!isLoadedFromStorage) {
-      console.log('[KickoffScreen] Save effect: SKIPPING (not loaded from storage yet)');
-      return; 
-    }
+    console.log(`[KickoffScreen] Save effect: START - mode: ${kickoffMode}, option: ${storyOption}`);
     
     let effectiveStoryOption = storyOption;
     if (kickoffMode === 'storyTime' && storyOption === null) {
@@ -65,7 +68,7 @@ const KickoffScreen: React.FC = () => {
     console.log('[KickoffScreen] Save effect: Saving to localStorage:', settingsToSave);
     localStorage.setItem(KICKOFF_SETTING_KEY, JSON.stringify(settingsToSave));
     console.log('[KickoffScreen] Save effect: END');
-  }, [kickoffMode, storyOption, isLoadedFromStorage]); // Add isLoadedFromStorage to ensure save after load
+  }, [kickoffMode, storyOption]); // Only depend on the actual state values
 
   const handleKickoffModeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newMode = event.target.value as 'getDownToBusiness' | 'storyTime';

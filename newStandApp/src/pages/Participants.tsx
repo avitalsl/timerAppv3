@@ -12,7 +12,9 @@ const Participants: React.FC = () => {
 
 const initialNames = ['Avital', 'Asaf', 'Yair', 'Eitan', 'Tal', 'Rotem', 'Yonatan'];
 const localStorageKey = 'participantsList';
+const PARTICIPANT_LIST_VISIBILITY_KEY = 'participantListVisibilityMode';
 
+// Get initial participants from localStorage or use defaults
 const getInitialParticipants = (): Participant[] => {
   const stored = localStorage.getItem(localStorageKey);
   if (stored) {
@@ -26,14 +28,38 @@ const getInitialParticipants = (): Participant[] => {
   return initialNames.map(name => ({ name, included: false }));
 };
 
+// Get initial visibility mode from localStorage or use default
+const getInitialVisibilityMode = (): 'all_visible' | 'focus_speaker' => {
+  try {
+    const storedMode = localStorage.getItem(PARTICIPANT_LIST_VISIBILITY_KEY);
+    if (storedMode === 'focus_speaker' || storedMode === 'all_visible') {
+      return storedMode;
+    }
+  } catch (e) {
+    console.error('[Participants] Error loading visibility mode from localStorage:', e);
+  }
+  return 'all_visible';
+};
+
 const [participants, setParticipants] = useState<Participant[]>(getInitialParticipants());
+const [listVisibilityMode, setListVisibilityMode] = useState<'all_visible' | 'focus_speaker'>(getInitialVisibilityMode());
 
 // Save to localStorage whenever participants changes
 React.useEffect(() => {
   localStorage.setItem(localStorageKey, JSON.stringify(participants));
 }, [participants]);
+
+  // We no longer need to load from localStorage on mount since we initialize with the correct values
+
+  React.useEffect(() => {
+    localStorage.setItem(PARTICIPANT_LIST_VISIBILITY_KEY, listVisibilityMode);
+  }, [listVisibilityMode]);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
+
+  const handleVisibilityModeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setListVisibilityMode(e.target.checked ? 'focus_speaker' : 'all_visible');
+  };
 
   // Filter participants by search term (case-insensitive substring)
   const filteredParticipants = participants.filter(p =>
@@ -85,7 +111,26 @@ React.useEffect(() => {
         </button>
       </div>
       {error && <div className="text-red-500 text-sm mb-2" data-testid="error-message">{error}</div>}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6" data-testid="participants-columns">
+
+      {/* Participant List Visibility Setting */}
+      <div className="my-6 p-4 border border-gray-200 rounded-md bg-gray-50" data-testid="participant-visibility-config-section">
+        <h4 className="text-md font-medium text-gray-700 mb-2">Meeting View Options</h4>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={listVisibilityMode === 'focus_speaker'}
+            onChange={handleVisibilityModeChange}
+            className="h-4 w-4 text-primary-medium focus:ring-primary-medium border-gray-300 rounded"
+            data-testid="checkbox-focus-speaker"
+          />
+          <span className="text-sm text-gray-600">Focus on current speaker (blur others during meeting)</span>
+        </label>
+        <p className="text-xs text-gray-500 mt-1 ml-6">
+          If checked, only the current speaker will be clearly visible in the participant list during the meeting. Others will be blurred.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8" data-testid="participants-columns">
         {/* Selected Participants */}
         <div>
           <h3 className="text-lg font-medium text-gray-700">Selected Participants</h3>

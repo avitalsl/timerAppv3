@@ -2,6 +2,7 @@ import React from 'react';
 import TimerWidget from './widgets/TimerWidget';
 import { useMeeting } from '../contexts/MeetingContext';
 
+import ParticipantListWidget from './widgets/ParticipantListWidget';
 // Placeholder Widgets - these should be actual component imports
 const PlaceholderWidget: React.FC<{ name: string }> = ({ name }) => (
   <div style={{ padding: '1rem', border: '1px solid #ddd', backgroundColor: '#f9f9f9', height: '100%' }}>
@@ -9,7 +10,7 @@ const PlaceholderWidget: React.FC<{ name: string }> = ({ name }) => (
   </div>
 );
 
-const ParticipantsWidget = () => <PlaceholderWidget name="Participants" />;
+
 const LinksWidget = () => <PlaceholderWidget name="Links" />;
 const NotesWidget = () => <PlaceholderWidget name="Notes" />;
 const AgendaWidget = () => <PlaceholderWidget name="Agenda" />;
@@ -18,7 +19,7 @@ const ChecklistWidget = () => <PlaceholderWidget name="Checklist" />;
 
 // Component Registry
 const componentRegistry: Record<string, React.FC<any>> = {
-  participants: ParticipantsWidget,
+  participants: ParticipantListWidget,
   links: LinksWidget,
   notes: NotesWidget,
   agenda: AgendaWidget,
