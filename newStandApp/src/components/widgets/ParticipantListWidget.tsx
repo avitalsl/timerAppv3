@@ -10,9 +10,11 @@ interface ParticipantListWidgetProps {
 
 const ParticipantListWidget: React.FC<ParticipantListWidgetProps> = ({
   participants,
-  mode = "setup",
+  mode = "meeting",
   onAddParticipantClick
 }) => {
+  console.log('[ParticipantListWidget] Received participants:', JSON.parse(JSON.stringify(participants))); // Log a deep copy
+  console.log('[ParticipantListWidget] Mode:', mode);
   return (
     <div className="h-full flex flex-col" data-testid="participant-list-widget-container">
       <div className="flex items-center justify-between mb-3">
@@ -24,7 +26,9 @@ const ParticipantListWidget: React.FC<ParticipantListWidgetProps> = ({
       
       <div className="flex-grow overflow-auto">
         <div className="flex flex-wrap gap-2 mb-3" data-testid="participant-list-widget-list">
-          {participants.map((participant) => (
+          {participants.map((participant) => {
+            console.log('[ParticipantListWidget] Mapping participant:', participant.name);
+            return (
             <div
               key={participant.name} // Assuming name is unique for key, or use participant.id if available
               className="flex items-center bg-primary-sandLight text-[#1a2a42] px-3 py-1 rounded-full"
@@ -32,7 +36,8 @@ const ParticipantListWidget: React.FC<ParticipantListWidgetProps> = ({
             >
               <span className="text-sm">{participant.name}</span>
             </div>
-          ))}
+          );
+        })}
           {mode === "setup" && onAddParticipantClick && (
             <div 
               className="flex items-center bg-buttonColor text-gray-500 px-3 py-1 rounded-full cursor-pointer hover:bg-gray-200"

@@ -39,6 +39,7 @@ export interface MeetingState {
   currentParticipantIndex: number | null;
   currentTimeSeconds: number;
   timerStatus: 'idle' | 'running' | 'paused' | 'finished' | 'participant_transition';
+  selectedGridComponentIds: string[];
 }
 
 const initialState: MeetingState = {
@@ -49,11 +50,12 @@ const initialState: MeetingState = {
   currentParticipantIndex: null,
   currentTimeSeconds: 0,
   timerStatus: 'idle',
+  selectedGridComponentIds: [],
 };
 
 // --- Actions --- 
 export type MeetingAction = 
-  | { type: 'START_MEETING'; payload: { storedTimerConfig: StoredTimerConfig; participants: Participant[]; kickoffSettings: KickoffSetting } }
+  | { type: 'START_MEETING'; payload: { storedTimerConfig: StoredTimerConfig; participants: Participant[]; kickoffSettings: KickoffSetting; selectedGridComponentIds: string[] } }
   | { type: 'END_MEETING' }
   | { type: 'PAUSE_TIMER' }
   | { type: 'RESUME_TIMER' }
@@ -68,7 +70,7 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
       // Logic to process StoredTimerConfig and initialize state
       // This will be fleshed out more when we implement useMeetingTimer
       console.log('[MeetingContext] START_MEETING', action.payload);
-      const { storedTimerConfig, participants, kickoffSettings } = action.payload;
+      const { storedTimerConfig, participants, kickoffSettings, selectedGridComponentIds } = action.payload;
       const mode = storedTimerConfig.mode;
       let durationSeconds = 0;
       if (mode === 'fixed' && storedTimerConfig.totalDurationMinutes) {
@@ -97,6 +99,7 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
           extensionAmountSeconds: storedTimerConfig.extensionAmountMinutes ? storedTimerConfig.extensionAmountMinutes * 60 : undefined,
         },
         kickoffSettings: kickoffSettings,
+        selectedGridComponentIds: selectedGridComponentIds,
         participants: activeParticipants,
         currentParticipantIndex: mode === 'per-participant' && activeParticipants.length > 0 ? 0 : null,
         currentTimeSeconds: durationSeconds,
@@ -104,7 +107,7 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
       };
     case 'END_MEETING':
       console.log('[MeetingContext] END_MEETING');
-      return { ...initialState }; // Reset to initial state
+      return { ...initialState, selectedGridComponentIds: [] }; // Reset to initial state, ensuring selectedGridComponentIds is also reset
     case 'PAUSE_TIMER':
       if (!state.isMeetingActive || state.timerStatus !== 'running') return state;
       console.log('[MeetingContext] PAUSE_TIMER');

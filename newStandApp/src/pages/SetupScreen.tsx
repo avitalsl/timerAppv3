@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useIsMobile } from '../hooks/useIsMobile'
+// import { useIsMobile } from '../hooks/useIsMobile'; // No longer used
 import {
   LayoutIcon,
   RefreshCwIcon,
@@ -7,15 +7,13 @@ import {
 
 // Import layout configuration components
 import ComponentPicker from '../components/ComponentPicker'
-import GridLayout from '../components/GridLayout'
+// import GridLayout from '../components/GridLayout'; // No longer used
 import { useLayoutStorage } from '../hooks/useLayoutStorage'
-import { COMPONENT_DEFINITIONS, DEFAULT_LAYOUT_CONFIG } from '../types/layoutTypes'
-import type { LayoutItem } from '../types/layoutTypes'
+import { COMPONENT_DEFINITIONS } from '../types/layoutTypes'
+// import type { LayoutItem } from '../types/layoutTypes'; // No longer used
 
 const SetupScreen = () => {
-  const isMobile = useIsMobile();
-
-  console.log('[DEBUG] SetupScreen rendered');
+    console.log('[DEBUG] SetupScreen rendered');
   
   // Layout configuration state
   const { layoutConfig, saveLayout, isLoaded } = useLayoutStorage()
@@ -32,78 +30,55 @@ const SetupScreen = () => {
   }, [isLoaded, layoutConfig])
 
 
-  // Handle component selection/deselection
+  // Handle component selection/deselection for visibility
   const handleToggleComponent = (componentId: string, selected: boolean) => {
-    // Clone current layouts and components
-    const updatedLayouts = { ...layoutConfig.layouts };
     const updatedComponents = { ...layoutConfig.components };
-
-    // Remove any existing layout items for this component from all breakpoints
-    Object.keys(updatedLayouts).forEach(breakpoint => {
-      updatedLayouts[breakpoint] = updatedLayouts[breakpoint].filter(item => item.i !== componentId);
-    });
+    const componentDef = COMPONENT_DEFINITIONS.find(def => def.id === componentId);
 
     if (selected) {
-      setSelectedComponents([...selectedComponents, componentId]);
-      // Add new layout item with correct sizing
-      const componentDef = COMPONENT_DEFINITIONS.find(def => def.id === componentId);
+      setSelectedComponents(prev => [...prev, componentId]);
       if (componentDef) {
-        Object.keys(updatedLayouts).forEach(breakpoint => {
-          updatedLayouts[breakpoint].push({
-            i: componentId,
-            x: 0,
-            y: 1000, // or appropriate y
-            w: componentDef.defaultSize.w,
-            h: componentDef.defaultSize.h,
-            minW: componentDef.minSize.w,
-            minH: componentDef.minSize.h,
-            ...(componentDef.maxSize ? {
-              maxW: componentDef.maxSize.w,
-              maxH: componentDef.maxSize.h
-            } : {}),
-            static: false
-          });
-        });
         updatedComponents[componentId] = {
+          ...(updatedComponents[componentId] || {}), // Preserve existing properties if any
           type: componentDef.type,
-          visible: true
+          visible: true,
         };
       }
     } else {
-      setSelectedComponents(selectedComponents.filter(id => id !== componentId));
-      // Remove the component from the components map
-      delete updatedComponents[componentId];
+      setSelectedComponents(prev => prev.filter(id => id !== componentId));
+      if (updatedComponents[componentId]) {
+        updatedComponents[componentId].visible = false;
+      } else if (componentDef) {
+        // If component was not in config, but is being deselected (e.g. from default state)
+        updatedComponents[componentId] = {
+          type: componentDef.type,
+          visible: false,
+        };
+      }
     }
 
     saveLayout({
-      ...layoutConfig,
-      layouts: updatedLayouts,
-      components: updatedComponents
+      components: updatedComponents,
     });
-  }
+  };
   
-  // Handle layout changes from GridLayout component (only lg layout)
-  const handleLayoutChange = (layout: LayoutItem[]) => {
-    console.log('[SetupScreen] handleLayoutChange triggered:', { 
-      lgLayout: layout,
-      time: new Date().toISOString()
-    });
-    const updatedConfig = {
-      ...layoutConfig,
-      layouts: { ...layoutConfig.layouts, lg: layout }
-    };
-    console.log('[SetupScreen] Saving layout config:', updatedConfig);    
-    saveLayout(updatedConfig);
-  }
+  // handleLayoutChange is no longer needed as GridLayout is removed.
   
-  // Reset layout to default (only timer)
+  // Reset component visibility to default (only timer visible)
   const handleResetLayout = () => {
-    // Reset to default layout with only the timer
-    saveLayout(DEFAULT_LAYOUT_CONFIG)
-    
-    // Update selected components state to match
-    setSelectedComponents(['timer'])
-  }
+    const newComponentsConfig: typeof layoutConfig.components = {};
+    COMPONENT_DEFINITIONS.forEach(def => {
+      newComponentsConfig[def.id] = {
+        type: def.type,
+        visible: def.id === 'timer', // Only timer is visible by default
+      };
+    });
+
+    saveLayout({
+      components: newComponentsConfig,
+    });
+    setSelectedComponents(['timer']);
+  };
 
   return (
     <div className="w-full max-w-[1200px] mx-auto" data-testid="screen-setup">
@@ -127,7 +102,7 @@ const SetupScreen = () => {
           </div>
           
           <p className="text-sm text-gray-500 mb-4">
-            Choose which components to include in your meeting layout and arrange them as needed.
+            Choose which features to display in your meeting.
             The Timer component is always included and cannot be removed.
           </p>
           
@@ -140,20 +115,13 @@ const SetupScreen = () => {
               />
             </div>
 
-            {isMobile ? (
-              <div className="w-full bg-blue-50 border border-blue-200 rounded-md p-4 text-blue-700 text-sm mt-2" data-testid="mobile-layout-info">
-                On mobile, components will appear stacked vertically in the meeting. Rearrangement is only available on desktop.
-              </div>
+            {/* GridLayout and mobile-specific layout message removed as layout is now fixed */}
+            {isLoaded ? (
+              <p className="text-sm text-gray-600 mt-4">
+                Selected features will be shown in a fixed layout during the meeting.
+              </p>
             ) : (
-              <div className="w-full">
-                {isLoaded && (
-                  <GridLayout
-                    layouts={{ lg: layoutConfig.layouts.lg }}
-                    components={layoutConfig.components}
-                    onLayoutChange={(layout) => handleLayoutChange(layout)}
-                  />
-                )}
-              </div>
+              <p className="text-sm text-gray-600 mt-4">Loading configuration...</p>
             )}
           </div>
         </div>

@@ -22,23 +22,7 @@ export interface ComponentDefinition {
   isRequired?: boolean; // Timer will be true
 }
 
-export interface LayoutItem {
-  i: string;        // Component ID
-  x: number;        // Grid position X
-  y: number;        // Grid position Y
-  w: number;        // Width in grid units
-  h: number;        // Height in grid units
-  minW?: number;    // Min width
-  minH?: number;    // Min height
-  maxW?: number;    // Max width
-  maxH?: number;    // Max height
-  static?: boolean; // If true, not draggable or resizable
-}
-
 export interface LayoutConfiguration {
-  layouts: {
-    [key: string]: LayoutItem[]  // Different breakpoints (xs, sm, md, lg)
-  };
   components: {
     [id: string]: {
       type: ComponentType;
@@ -102,13 +86,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   }
 ];
 
-// Default empty layout with just timer
+// Default configuration with just timer visible
 export const DEFAULT_LAYOUT_CONFIG: LayoutConfiguration = {
-  layouts: {
-    lg: [
-      { i: 'timer', x: 0, y: 0, w: 4, h: 3, minW: 4, minH: 3, static: false }
-    ]
-  },
   components: {
     timer: { type: ComponentType.TIMER, visible: true }
   }

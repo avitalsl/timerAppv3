@@ -30,7 +30,6 @@ const [participants, setParticipants] = useState<Participant[]>(getInitialPartic
 
 // Save to localStorage whenever participants changes
 React.useEffect(() => {
-  console.log('Participants State:', JSON.parse(JSON.stringify(participants))); // Log a deep copy
   localStorage.setItem(localStorageKey, JSON.stringify(participants));
 }, [participants]);
   const [searchTerm, setSearchTerm] = useState('');

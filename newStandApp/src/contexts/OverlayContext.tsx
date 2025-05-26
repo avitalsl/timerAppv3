@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { useMeeting, type StoredTimerConfig, type Participant, type KickoffSetting } from './MeetingContext';
+import type { LayoutConfiguration } from '../types/layoutTypes';
 
 // LocalStorage Keys
 const KICKOFF_SETTING_KEY = 'kickoffSetting';
 const TIMER_SETUP_STORAGE_KEY = 'timerSetupConfig';
 const PARTICIPANTS_STORAGE_KEY = 'participantsList';
+const LAYOUT_CONFIG_KEY = 'meetingLayoutConfig';
 
 // Define the shape of our context
 interface OverlayContextType {
@@ -61,6 +63,25 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({ children }) =>
       if (rawKickoff) kickoffSettings = JSON.parse(rawKickoff);
     } catch (e) { console.error('Error parsing kickoffSetting from localStorage', e); }
 
+    // Retrieve and parse LayoutConfiguration to get selected grid components
+    let selectedGridComponentIds: string[] = [];
+    try {
+      const layoutConfigData = localStorage.getItem(LAYOUT_CONFIG_KEY);
+      if (layoutConfigData) {
+        const parsedLayoutConfig: LayoutConfiguration = JSON.parse(layoutConfigData);
+        if (parsedLayoutConfig && parsedLayoutConfig.components) {
+          selectedGridComponentIds = Object.entries(parsedLayoutConfig.components)
+            .filter(([_, component]) => component.visible)
+            .map(([id]) => id);
+        }
+      } else {
+        console.warn(`[OverlayContext] No layoutConfig found in localStorage, defaulting to no extra grid components.`);
+      }
+    } catch (error) {
+      console.error('[OverlayContext] Error parsing layoutConfig from localStorage:', error);
+      // Keep default (empty array) if parsing fails
+    }
+
     // Dispatch START_MEETING action
     meetingDispatch({
       type: 'START_MEETING',
@@ -68,6 +89,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({ children }) =>
         storedTimerConfig,
         participants: participantsList.filter(p => p.included), // Ensure only included participants are passed
         kickoffSettings,
+        selectedGridComponentIds,
       },
     });
     setIsOverlayVisible(true);

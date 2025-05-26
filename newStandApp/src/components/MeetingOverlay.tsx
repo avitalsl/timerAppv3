@@ -2,9 +2,9 @@ import { createPortal } from 'react-dom';
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { useOverlay } from '../contexts/OverlayContext';
-import GridLayout from './GridLayout';
-import { DEFAULT_LAYOUT_CONFIG } from '../types/layoutTypes';
-import type { LayoutConfiguration } from '../types/layoutTypes';
+import MeetingScreen from './MeetingScreen';
+// import { DEFAULT_LAYOUT_CONFIG } from '../types/layoutTypes'; // No longer needed
+// import type { LayoutConfiguration } from '../types/layoutTypes'; // No longer needed
 
 /**
  * Meeting Overlay Component
@@ -18,38 +18,16 @@ const MeetingOverlay = () => {
 
   // State to hold the main element DOM reference
   const [mainElement, setMainElement] = useState<Element | null>(null);
-  // Direct management of layout configuration to ensure freshness
-  const [layoutConfig, setLayoutConfig] = useState<LayoutConfiguration>(DEFAULT_LAYOUT_CONFIG);
-  const [isConfigLoaded, setIsConfigLoaded] = useState(false);
+  // layoutConfig and isConfigLoaded state are no longer needed as MeetingScreen handles its content.
   
-  // Effect to find the main element and refresh layout data when the overlay becomes visible
+  // Effect to find the main element when the overlay becomes visible
   useEffect(() => {
     if (isOverlayVisible) {
       // Find the main element - we'll mount our portal here
       const main = document.querySelector('main');
       setMainElement(main);
-      
-      // CRITICAL FIX: Directly load the latest configuration from localStorage
-      try {
-        const storedConfig = localStorage.getItem('meetingLayoutConfig');
-        if (storedConfig) {
-          const parsedConfig = JSON.parse(storedConfig);
-          setLayoutConfig(parsedConfig);
-          
-          // Log visible components to help with debugging
-          const visibleComponents = Object.values(parsedConfig.components)
-            .filter((comp: any) => comp.visible).length;
-          console.log(`MeetingOverlay: Loaded ${visibleComponents} visible components from localStorage`);
-          
-          setIsConfigLoaded(true);
-        } else {
-          console.log('No stored layout configuration found, using default');
-          setIsConfigLoaded(true);
-        }
-      } catch (error) {
-        console.error('Failed to load layout configuration:', error);
-        setIsConfigLoaded(true); // Continue with default config
-      }
+      // Logic for loading layoutConfig from localStorage is removed.
+      // MeetingScreen will manage its own content, initially just showing the Timer.
     }
   }, [isOverlayVisible]);
   
@@ -85,19 +63,7 @@ const MeetingOverlay = () => {
     </h2>
   </div>
   <div className="flex-1 overflow-auto">
-    {isConfigLoaded ? (
-      <GridLayout 
-        layouts={layoutConfig.layouts} 
-        components={layoutConfig.components}
-        onLayoutChange={() => {}} // Read-only in overlay mode
-        disableLayoutControls={true}
-        inMeetingOverlay={true}
-      />
-    ) : (
-      <div className="flex justify-center items-center h-40">
-        <p>Loading meeting layout...</p>
-      </div>
-    )}
+    <MeetingScreen />
   </div>
 </div>
     </div>
