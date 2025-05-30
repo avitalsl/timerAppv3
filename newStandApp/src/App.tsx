@@ -9,6 +9,7 @@ import MainLayout from './layouts/MainLayout'
 import SetupScreen from './pages/SetupScreen'
 import TimerSetup from './pages/TimerSetup'
 import Participants from './pages/Participants'
+import LinksSetup from './pages/LinksSetup'
 import KickoffScreen from './components/KickoffScreen'
 import { MeetingProvider } from './contexts/MeetingContext';
 
@@ -22,6 +23,7 @@ function App() {
               <Route index element={<SetupScreen />} />
               <Route path="meeting" element={<TimerSetup />} />
               <Route path="participants" element={<Participants />} />
+              <Route path="links" element={<LinksSetup />} />
               <Route path="kickoff" element={<KickoffScreen />} />
             <Route path="*" element={<Navigate to="/" replace />} />
             </Route>

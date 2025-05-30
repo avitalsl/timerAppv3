@@ -82,6 +82,16 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({ children }) =>
       // Keep default (empty array) if parsing fails
     }
 
+    // Get participant list visibility mode before dispatch
+    let participantListVisibilityMode: 'all_visible' | 'focus_speaker' = 'all_visible';
+    try {
+      const mode = localStorage.getItem('participantListVisibilityMode');
+      if (mode === 'focus_speaker' || mode === 'all_visible') {
+        participantListVisibilityMode = mode;
+      }
+    } catch (e) {
+      console.error('[OverlayContext] Error loading participantListVisibilityMode:', e);
+    }
     // Dispatch START_MEETING action
     meetingDispatch({
       type: 'START_MEETING',
@@ -90,6 +100,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({ children }) =>
         participants: participantsList.filter(p => p.included), // Ensure only included participants are passed
         kickoffSettings,
         selectedGridComponentIds,
+        participantListVisibilityMode,
       },
     });
     setIsOverlayVisible(true);

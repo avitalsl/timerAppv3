@@ -87,68 +87,71 @@ const KickoffScreen: React.FC = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 max-w-[1200px] mx-auto" data-testid="kickoff-screen-card">
-      <h2 className="text-xl font-semibold mb-4">Kickoff Settings</h2>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-gray-500 mr-2">
+            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+            <line x1="4" y1="22" x2="4" y2="15"/>
+          </svg>
+          <h3 className="text-lg font-medium text-gray-700">Kickoff Settings</h3>
+        </div>
+      </div>
 
-      <div className="mb-6" data-testid="kickoff-mode-selector">
-        <label className="block text-gray-700 text-sm font-bold mb-2">How should the meeting start?</label>
-        <div>
-          <label className="inline-flex items-center mr-6">
+      {/* Kickoff Mode Selection */}
+      <section className="mb-8" data-testid="kickoff-mode-selector">
+        <div className="flex gap-6 mb-4">
+          <label className="flex items-center gap-2">
             <input
               type="radio"
-              className="form-radio text-blue-600"
               name="kickoffMode"
               value="getDownToBusiness"
               checked={kickoffMode === 'getDownToBusiness'}
               onChange={handleKickoffModeChange}
               data-testid="kickoff-mode-getDownToBusiness"
             />
-            <span className="ml-2">Get Down to Business</span>
+            <span className="text-sm text-gray-500">Get Down to Business</span>
           </label>
-          <label className="inline-flex items-center">
+          <label className="flex items-center gap-2">
             <input
               type="radio"
-              className="form-radio text-blue-600"
               name="kickoffMode"
               value="storyTime"
               checked={kickoffMode === 'storyTime'}
               onChange={handleKickoffModeChange}
               data-testid="kickoff-mode-storyTime"
             />
-            <span className="ml-2">Story Time</span>
+            <span className="text-sm text-gray-500">Story Time</span>
           </label>
         </div>
-      </div>
+      </section>
 
       {kickoffMode === 'storyTime' && (
-        <div className="mb-4 transition-all duration-300 ease-in-out" data-testid="story-time-options-selector">
-          <label className="block text-gray-700 text-sm font-bold mb-2">Choose storyteller method:</label>
-          <div>
-            <label className="inline-flex items-center mr-6">
+        <section className="mb-8 transition-all duration-300 ease-in-out" data-testid="story-time-options-selector">
+          <div className="flex gap-6 mb-4">
+            <label className="flex items-center gap-2">
               <input
                 type="radio"
-                className="form-radio text-blue-600"
                 name="storyOption"
                 value="random"
                 checked={storyOption === 'random'}
                 onChange={handleStoryOptionChange}
                 data-testid="story-time-option-random"
               />
-              <span className="ml-2">Randomize Storyteller</span>
+              <span className="text-sm text-gray-500">Randomize Storyteller</span>
             </label>
-            <label className="inline-flex items-center">
+            <label className="flex items-center gap-2">
               <input
                 type="radio"
-                className="form-radio text-blue-600"
                 name="storyOption"
                 value="manual"
                 checked={storyOption === 'manual'}
                 onChange={handleStoryOptionChange}
                 data-testid="story-time-option-manual"
               />
-              <span className="ml-2">Choose Storyteller</span>
+              <span className="text-sm text-gray-500">Choose Storyteller</span>
             </label>
           </div>
-        </div>
+        </section>
       )}
     </div>
   );

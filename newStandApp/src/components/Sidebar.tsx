@@ -6,7 +6,7 @@ import {
   UsersIcon,
   LayoutDashboardIcon,
   CalendarIcon,
-  HistoryIcon,
+  LinkIcon,
 } from 'lucide-react'
 
 import { useNavigate } from 'react-router-dom';
@@ -77,6 +77,16 @@ const Sidebar = () => {
           <UsersIcon className="h-5 w-5" />
           <span className="ml-3 hidden tablet:block">Participants</span>
         </NavLink>
+        <NavLink
+          to="/links"
+          className={({ isActive }) =>
+            `flex items-center py-3 px-4 ${isActive ? 'bg-[#2c4066] border-l-4 border-[#4a9fff]' : ''}`
+          }
+          data-testid="sidebar-nav-link-links"
+        >
+          <LinkIcon className="h-5 w-5" />
+          <span className="ml-3 hidden tablet:block">Set Links</span>
+        </NavLink>
         <div
   className="flex items-center py-3 px-4 cursor-pointer hover:bg-[#2c4066] hover:text-white transition-colors"
   data-testid="sidebar-kickoff"
@@ -85,10 +95,7 @@ const Sidebar = () => {
   <CalendarIcon className="h-5 w-5" />
   <span className="ml-3 hidden tablet:block">Kickoff</span>
 </div>
-        <div className="flex items-center py-3 px-4 text-gray-400">
-          <HistoryIcon className="h-5 w-5" />
-          <span className="ml-3 hidden tablet:block">History</span>
-        </div>
+        {/* History section removed */}
       </nav>
     </aside>
   )

@@ -18,7 +18,7 @@ function getInitialState() {
       const saved = JSON.parse(raw);
       console.log('[TimerSetup] Loading initial state from localStorage:', saved);
       return {
-        mode: saved.mode === 'fixed' || saved.mode === 'per-participant' ? saved.mode : 'fixed',
+        mode: saved.mode === 'fixed' || saved.mode === 'per-participant' ? saved.mode : 'per-participant',
         totalDuration: typeof saved.totalDurationMinutes === 'number' ? saved.totalDurationMinutes : 15,
         perParticipant: typeof saved.durationPerParticipantSeconds === 'number' ? saved.durationPerParticipantSeconds : 
                        typeof saved.perParticipantMinutes === 'number' ? saved.perParticipantMinutes * 60 : 60,
@@ -33,7 +33,7 @@ function getInitialState() {
   
   // Default state if localStorage is empty or invalid
   return {
-    mode: 'fixed',
+    mode: 'per-participant',
     totalDuration: 15,
     perParticipant: 60,
     allowExtension: false,

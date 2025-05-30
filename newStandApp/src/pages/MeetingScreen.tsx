@@ -13,7 +13,7 @@ const MeetingScreen: React.FC = () => {
       data-testid="meeting-screen-container"
     >
       {/* Timer is always visible in the left sidebar */}
-      <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 sticky top-0" data-testid="timer-sidebar">
+      <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 sticky top-0 bg-white" data-testid="timer-sidebar">
         <TimerWidget />
       </div>
 

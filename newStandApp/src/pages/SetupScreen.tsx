@@ -103,7 +103,6 @@ const SetupScreen = () => {
           
           <p className="text-sm text-gray-500 mb-4">
             Choose which features to display in your meeting.
-            The Timer component is always included and cannot be removed.
           </p>
           
           <div className="flex flex-col space-y-6">

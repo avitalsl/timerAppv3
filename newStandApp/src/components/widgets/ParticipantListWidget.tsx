@@ -37,17 +37,17 @@ const ParticipantListWidget: React.FC = () => {
   return (
     <div className="p-4 bg-white rounded-lg shadow h-full flex flex-col" data-testid="widget-participants">
       <h3 className="text-lg font-semibold mb-3 text-gray-700 border-b pb-2">Participants</h3>
-      <ul className="space-y-2 overflow-y-auto flex-grow" data-testid="participant-list-ul">
+      <ul className="flex flex-row flex-wrap gap-2 overflow-y-auto flex-grow" data-testid="participant-list-ul">
         {participants.map((participant, index) => {
           const isCurrentSpeaker = index === currentParticipantIndex;
           
-          let itemClasses = "p-2 rounded-md transition-all duration-300 ease-in-out flex items-center text-sm ";
+          let itemClasses = "px-2 py-1 rounded-md transition-all duration-300 ease-in-out flex items-center text-xs min-w-[80px] max-w-[120px] w-fit bg-primary-sand ";
 
           // Apply highlighting for the current speaker, typically most relevant in per-participant mode
           if (isCurrentSpeaker && timerConfig?.mode === 'per-participant') {
-            itemClasses += "bg-primary-light text-primary-dark font-semibold ring-2 ring-primary-medium";
+            itemClasses += " bg-primary-light text-primary-dark font-semibold ring-2 ring-primary-medium";
           } else {
-            itemClasses += "bg-gray-50 hover:bg-gray-100 text-gray-800";
+            itemClasses += " text-gray-800";
           }
 
           // Apply blur to non-current speakers if focus mode is enabled
@@ -61,7 +61,7 @@ const ParticipantListWidget: React.FC = () => {
               className={itemClasses.trim()}
               data-testid={`participant-item-${index}`}
             >
-              <User className={`w-4 h-4 mr-2 flex-shrink-0 ${isCurrentSpeaker && timerConfig?.mode === 'per-participant' ? 'text-primary-dark' : 'text-gray-500'}`} />
+              <User className={`w-3 h-3 mr-1 flex-shrink-0 ${isCurrentSpeaker && timerConfig?.mode === 'per-participant' ? 'text-primary-dark' : 'text-gray-500'}`} />
               <span className="truncate">{participant.name}</span>
             </li>
           );

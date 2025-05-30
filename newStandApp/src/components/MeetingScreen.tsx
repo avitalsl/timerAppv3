@@ -54,7 +54,7 @@ const MeetingScreen: React.FC = () => {
         style={{
           width: '300px',    
           flexShrink: 0,      
-          backgroundColor: '#f0f0f0',
+          // backgroundColor: '#f0f0f0',
           padding: '1rem',
           height: '100%',     
           overflowY: 'hidden',  

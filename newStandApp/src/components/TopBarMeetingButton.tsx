@@ -70,6 +70,18 @@ function getInitialMeetingSettings() {
     console.error('[TopBarMeetingButton] Error loading kickoff settings:', error);
   }
 
+  // Get participant list visibility mode
+  let participantListVisibilityMode: 'all_visible' | 'focus_speaker' = 'all_visible';
+  try {
+    const mode = localStorage.getItem(PARTICIPANT_LIST_VISIBILITY_KEY);
+    if (mode === 'focus_speaker' || mode === 'all_visible') {
+      participantListVisibilityMode = mode;
+    }
+    console.log('[TopBarMeetingButton] Loaded visibility mode:', participantListVisibilityMode);
+  } catch (error) {
+    console.error('[TopBarMeetingButton] Error loading visibility mode:', error);
+  }
+
   // Get selected grid components from layout config
   let selectedGridComponentIds: string[] = [];
   try {
@@ -87,22 +99,6 @@ function getInitialMeetingSettings() {
     }
   } catch (error) {
     console.error('[TopBarMeetingButton] Error loading layout config:', error);
-  }
-
-  // Get participant list visibility mode
-  let participantListVisibilityMode: 'all_visible' | 'focus_speaker' = 'all_visible';
-  try {
-    const data = localStorage.getItem(PARTICIPANT_LIST_VISIBILITY_KEY);
-    if (data === 'focus_speaker' || data === 'all_visible') {
-      participantListVisibilityMode = data;
-      console.log('[TopBarMeetingButton] Loaded visibility mode:', participantListVisibilityMode);
-    } else if (data) {
-      console.warn(`[TopBarMeetingButton] Invalid visibility mode found: '${data}', using default`);
-    } else {
-      console.log('[TopBarMeetingButton] No visibility mode found, using default');
-    }
-  } catch (error) {
-    console.error('[TopBarMeetingButton] Error loading visibility mode:', error);
   }
 
   return {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlayIcon, PauseIcon, RefreshCwIcon, SkipForwardIcon } from 'lucide-react';
+import { PlayIcon, PauseIcon, RefreshCwIcon, SkipForwardIcon, PlusIcon } from 'lucide-react';
 import { useMeeting } from '../../contexts/MeetingContext';
 
 const TimerWidget: React.FC = () => {
@@ -64,6 +64,12 @@ const TimerWidget: React.FC = () => {
     }
   };
 
+  const handleAddTime = () => {
+    if (isMeetingActive && timerConfig?.allowExtension) {
+      dispatch({ type: 'ADD_TIME' });
+    }
+  };
+
   const isPlayPauseDisabled = !isMeetingActive || timerStatus === 'finished';
   const isNextParticipantMode = isMeetingActive && timerConfig?.mode === 'per-participant';
   const isNextParticipantDisabled = 
@@ -71,6 +77,7 @@ const TimerWidget: React.FC = () => {
     currentParticipantIndex === null || 
     currentParticipantIndex >= participants.length - 1 ||
     timerStatus === 'finished';
+  const isExtensionAllowed = isMeetingActive && timerConfig?.allowExtension && timerStatus !== 'finished';
 
   return (
     <div 
@@ -145,7 +152,7 @@ const TimerWidget: React.FC = () => {
             className="p-3 rounded-full bg-white hover:bg-primary-sandLight disabled:opacity-60 disabled:cursor-not-allowed shadow-md"
             disabled={isNextParticipantDisabled}
             aria-label="Next participant"
-            data-testid="timer-next-reset-button" // Keeping same testid, though function might differ
+            data-testid="timer-next-reset-button"
           >
             <SkipForwardIcon className="h-6 w-6 text-primary-medium" />
           </button>
@@ -159,6 +166,17 @@ const TimerWidget: React.FC = () => {
             data-testid="timer-next-reset-button" 
           >
             <RefreshCwIcon className="h-6 w-6 text-primary-medium" />
+          </button>
+        )}
+        
+        {isExtensionAllowed && (
+          <button
+            onClick={handleAddTime}
+            className="p-3 rounded-full bg-white hover:bg-primary-sandLight disabled:opacity-60 disabled:cursor-not-allowed shadow-md"
+            aria-label="Add time"
+            data-testid="timer-add-time-button"
+          >
+            <PlusIcon className="h-6 w-6 text-primary-medium" />
           </button>
         )}
       </div>

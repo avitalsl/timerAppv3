@@ -64,15 +64,18 @@ export type MeetingAction =
   | { type: 'RESUME_TIMER' }
   | { type: 'TICK' }
   | { type: 'NEXT_PARTICIPANT' }
+  | { type: 'ADD_TIME' }
   | { type: 'SET_TIMER_STATUS'; payload: MeetingState['timerStatus'] };
 
 // --- Reducer --- 
 const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingState => {
   switch (action.type) {
     case 'START_MEETING':
+      // Debug: Log the full payload and the participantListVisibilityMode
+      console.log('[DEBUG] START_MEETING payload:', action.payload);
+      console.log('[DEBUG] participantListVisibilityMode:', action.payload.participantListVisibilityMode);
       // Logic to process StoredTimerConfig and initialize state
       // This will be fleshed out more when we implement useMeetingTimer
-      console.log('[MeetingContext] START_MEETING', action.payload);
       const { storedTimerConfig, participants, kickoffSettings, selectedGridComponentIds, participantListVisibilityMode } = action.payload;
       const mode = storedTimerConfig.mode;
       let durationSeconds = 0;
@@ -176,6 +179,16 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
       return state;
     case 'SET_TIMER_STATUS':
       return { ...state, timerStatus: action.payload };
+    case 'ADD_TIME':
+      // Only add time if the meeting is active and the timer config allows extension
+      if (!state.isMeetingActive || !state.timerConfig?.allowExtension || !state.timerConfig?.extensionAmountSeconds) {
+        return state;
+      }
+      console.log('[MeetingContext] ADD_TIME: Adding', state.timerConfig.extensionAmountSeconds, 'seconds to timer');
+      return {
+        ...state,
+        currentTimeSeconds: state.currentTimeSeconds + state.timerConfig.extensionAmountSeconds
+      };
     default:
       return state;
   }
