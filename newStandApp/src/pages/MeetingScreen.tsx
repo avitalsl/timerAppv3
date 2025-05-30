@@ -5,6 +5,8 @@ import { useMeeting } from '../contexts/MeetingContext';
 
 const MeetingScreen: React.FC = () => {
   const { state } = useMeeting();
+  // We use selectedGridComponentIds from the meeting state during an active meeting
+  // This is populated at meeting start from the useComponentVisibility hook
   const { selectedGridComponentIds } = state;
 
   return (

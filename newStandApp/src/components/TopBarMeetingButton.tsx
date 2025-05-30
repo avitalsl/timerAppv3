@@ -3,12 +3,11 @@ import { Play } from 'lucide-react';
 import { useOverlay } from '../contexts/OverlayContext';
 import { useMeeting } from '../contexts/MeetingContext';
 import type { StoredTimerConfig, Participant, KickoffSetting } from '../contexts/MeetingContext';
-import type { LayoutConfiguration } from '../types/layoutTypes';
+import { useComponentVisibility } from '../hooks/useComponentVisibility';
 
 const TIMER_CONFIG_KEY = 'timerSetupConfig';
 const PARTICIPANTS_KEY = 'participants';
 const KICKOFF_SETTING_KEY = 'kickoffSetting';
-const LAYOUT_CONFIG_KEY = 'meetingLayoutConfig';
 const PARTICIPANT_LIST_VISIBILITY_KEY = 'participantListVisibilityMode';
 
 const DEFAULT_TIMER_CONFIG: StoredTimerConfig = {
@@ -82,30 +81,12 @@ function getInitialMeetingSettings() {
     console.error('[TopBarMeetingButton] Error loading visibility mode:', error);
   }
 
-  // Get selected grid components from layout config
-  let selectedGridComponentIds: string[] = [];
-  try {
-    const data = localStorage.getItem(LAYOUT_CONFIG_KEY);
-    if (data) {
-      const parsedLayoutConfig: LayoutConfiguration = JSON.parse(data);
-      if (parsedLayoutConfig && parsedLayoutConfig.components) {
-        selectedGridComponentIds = Object.entries(parsedLayoutConfig.components)
-          .filter(([_, component]) => component.visible)
-          .map(([id]) => id);
-        console.log('[TopBarMeetingButton] Loaded grid components:', selectedGridComponentIds);
-      }
-    } else {
-      console.log('[TopBarMeetingButton] No layout config found, using empty grid');
-    }
-  } catch (error) {
-    console.error('[TopBarMeetingButton] Error loading layout config:', error);
-  }
+  // We'll get the selected components from the hook instead of directly from localStorage
 
   return {
     storedTimerConfig,
     participants,
     kickoffSettings,
-    selectedGridComponentIds,
     participantListVisibilityMode,
   };
 }
@@ -113,15 +94,19 @@ function getInitialMeetingSettings() {
 export const TopBarMeetingButton: React.FC = () => {
   const { showOverlay } = useOverlay();
   const { dispatch } = useMeeting();
+  const { visibilityConfig } = useComponentVisibility();
 
   // Get all meeting settings at once using useMemo to ensure it only runs once
   const initialSettings = React.useMemo(() => getInitialMeetingSettings(), []);
 
   const handleStartMeeting = () => {
-    // Dispatch the START_MEETING action with all settings
+    // Dispatch the START_MEETING action with all settings and the selected components from the visibility hook
     dispatch({
       type: 'START_MEETING',
-      payload: initialSettings,
+      payload: {
+        ...initialSettings,
+        selectedGridComponentIds: visibilityConfig.visibleComponents
+      },
     });
 
     showOverlay();

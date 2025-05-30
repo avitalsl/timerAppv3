@@ -8,76 +8,52 @@ import {
 // Import layout configuration components
 import ComponentPicker from '../components/ComponentPicker'
 // import GridLayout from '../components/GridLayout'; // No longer used
-import { useLayoutStorage } from '../hooks/useLayoutStorage'
+import { useComponentVisibility } from '../hooks/useComponentVisibility'
 import { COMPONENT_DEFINITIONS } from '../types/layoutTypes'
 // import type { LayoutItem } from '../types/layoutTypes'; // No longer used
 
 const SetupScreen = () => {
     console.log('[DEBUG] SetupScreen rendered');
   
-  // Layout configuration state
-  const { layoutConfig, saveLayout, isLoaded } = useLayoutStorage()
+  // Component visibility state
+  const { visibilityConfig, toggleComponentVisibility, saveVisibilityConfig, isLoaded } = useComponentVisibility()
   const [selectedComponents, setSelectedComponents] = useState<string[]>([])
   
   // Initialize selected components based on loaded config
   useMemo(() => {
-    if (isLoaded && layoutConfig) {
-      const visibleComponents = Object.entries(layoutConfig.components)
-        .filter(([_, component]) => component.visible)
-        .map(([id]) => id)
-      setSelectedComponents(visibleComponents)
+    if (isLoaded && visibilityConfig) {
+      setSelectedComponents(visibilityConfig.visibleComponents)
     }
-  }, [isLoaded, layoutConfig])
+  }, [isLoaded, visibilityConfig])
 
 
   // Handle component selection/deselection for visibility
   const handleToggleComponent = (componentId: string, selected: boolean) => {
-    const updatedComponents = { ...layoutConfig.components };
-    const componentDef = COMPONENT_DEFINITIONS.find(def => def.id === componentId);
-
+    // Update local state
     if (selected) {
       setSelectedComponents(prev => [...prev, componentId]);
-      if (componentDef) {
-        updatedComponents[componentId] = {
-          ...(updatedComponents[componentId] || {}), // Preserve existing properties if any
-          type: componentDef.type,
-          visible: true,
-        };
-      }
     } else {
       setSelectedComponents(prev => prev.filter(id => id !== componentId));
-      if (updatedComponents[componentId]) {
-        updatedComponents[componentId].visible = false;
-      } else if (componentDef) {
-        // If component was not in config, but is being deselected (e.g. from default state)
-        updatedComponents[componentId] = {
-          type: componentDef.type,
-          visible: false,
-        };
-      }
     }
-
-    saveLayout({
-      components: updatedComponents,
-    });
+    
+    // Use the simplified toggle method from the hook
+    toggleComponentVisibility(componentId, selected);
   };
   
   // handleLayoutChange is no longer needed as GridLayout is removed.
   
   // Reset component visibility to default (only timer visible)
   const handleResetLayout = () => {
-    const newComponentsConfig: typeof layoutConfig.components = {};
-    COMPONENT_DEFINITIONS.forEach(def => {
-      newComponentsConfig[def.id] = {
-        type: def.type,
-        visible: def.id === 'timer', // Only timer is visible by default
-      };
+    // Use the simplified config format
+    const visibleComponents = ['timer']; // Only timer is visible by default
+    
+    // Update the visibility config through the hook
+    saveVisibilityConfig({
+      visibleComponents
     });
-
-    saveLayout({
-      components: newComponentsConfig,
-    });
-    setSelectedComponents(['timer']);
+    
+    // Update local state
+    setSelectedComponents(visibleComponents);
   };
 
   return (
