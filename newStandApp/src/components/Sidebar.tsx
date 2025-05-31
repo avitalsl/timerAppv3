@@ -4,15 +4,13 @@ import {
   ClockIcon,
   SettingsIcon,
   UsersIcon,
-  LayoutDashboardIcon,
-  CalendarIcon,
   LinkIcon,
 } from 'lucide-react'
-
-import { useNavigate } from 'react-router-dom';
+import { useMeeting } from '../contexts/MeetingContext';
 
 const Sidebar = () => {
-  const navigate = useNavigate();
+  const { state } = useMeeting();
+  const selectedFeatures = state.selectedGridComponentIds;
 
   // 
   // Sidebar responsive states:
@@ -45,7 +43,8 @@ const Sidebar = () => {
           MeetingTime
         </span>
       </div>
-      <nav className="flex-1 mt-6">
+      <nav className="flex-1 mt-6" data-testid="sidebar-link-container">
+        {/* Meeting Setup - Always visible */}
         <NavLink
           to="/"
           className={({ isActive }) =>
@@ -55,46 +54,38 @@ const Sidebar = () => {
           data-testid="sidebar-nav-link-home"
         >
           <SettingsIcon className="h-5 w-5" />
-          <span className="ml-3 hidden tablet:block">Customize Meeting</span>
+          <span className="ml-3 hidden tablet:block" data-component-name="Sidebar">Meeting Setup</span>
         </NavLink>
-        <NavLink
-          to="/meeting"
-          className={({ isActive }) =>
-            `flex items-center py-3 px-4 ${isActive ? 'bg-[#2c4066] border-l-4 border-[#4a9fff]' : ''}`
-          }
-          data-testid="sidebar-nav-link-meeting"
-        >
-          <LayoutDashboardIcon className="h-5 w-5" />
-          <span className="ml-3 hidden tablet:block">Timer Setup</span>
-        </NavLink>
-        <NavLink
-          to="/participants"
-          className={({ isActive }) =>
-            `flex items-center py-3 px-4 ${isActive ? 'bg-[#2c4066] border-l-4 border-[#4a9fff]' : ''}`
-          }
-          data-testid="sidebar-nav-link-participants"
-        >
-          <UsersIcon className="h-5 w-5" />
-          <span className="ml-3 hidden tablet:block">Participants</span>
-        </NavLink>
-        <NavLink
-          to="/links"
-          className={({ isActive }) =>
-            `flex items-center py-3 px-4 ${isActive ? 'bg-[#2c4066] border-l-4 border-[#4a9fff]' : ''}`
-          }
-          data-testid="sidebar-nav-link-links"
-        >
-          <LinkIcon className="h-5 w-5" />
-          <span className="ml-3 hidden tablet:block">Set Links</span>
-        </NavLink>
-        <div
-  className="flex items-center py-3 px-4 cursor-pointer hover:bg-[#2c4066] hover:text-white transition-colors"
-  data-testid="sidebar-kickoff"
-  onClick={() => navigate('/kickoff')}
->
-  <CalendarIcon className="h-5 w-5" />
-  <span className="ml-3 hidden tablet:block">Kickoff</span>
-</div>
+        
+        {/* Participants - Only visible if selected */}
+        {selectedFeatures.includes('participants') && (
+          <NavLink
+            to="/participants"
+            className={({ isActive }) =>
+              `flex items-center py-3 px-4 ${isActive ? 'bg-[#2c4066] border-l-4 border-[#4a9fff]' : ''}`
+            }
+            data-testid="sidebar-nav-link-participants"
+          >
+            <UsersIcon className="h-5 w-5" />
+            <span className="ml-3 hidden tablet:block">Participants</span>
+          </NavLink>
+        )}
+        
+        {/* Links - Only visible if selected */}
+        {selectedFeatures.includes('links') && (
+          <NavLink
+            to="/links"
+            className={({ isActive }) =>
+              `flex items-center py-3 px-4 ${isActive ? 'bg-[#2c4066] border-l-4 border-[#4a9fff]' : ''}`
+            }
+            data-testid="sidebar-nav-link-links"
+          >
+            <LinkIcon className="h-5 w-5" />
+            <span className="ml-3 hidden tablet:block">Set Links</span>
+          </NavLink>
+        )}
+        
+        {/* Kickoff link removed as it's now integrated into the SetupScreen */}
         {/* History section removed */}
       </nav>
     </aside>

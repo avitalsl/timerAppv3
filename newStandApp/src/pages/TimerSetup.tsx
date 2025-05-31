@@ -1,62 +1,36 @@
 /**
- * TimerSetup component placeholder.
- * Implement your timer setup UI here.
+ * TimerSetup component for configuring meeting timer settings.
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Clock1Icon } from 'lucide-react';
-
-/**
- * TimerSetup component allows users to configure meeting timer settings.
- */
-const TIMER_SETUP_STORAGE_KEY = 'timerSetupConfig';
-
-// Function to get initial state from localStorage
-function getInitialState() {
-  try {
-    const raw = localStorage.getItem(TIMER_SETUP_STORAGE_KEY);
-    if (raw) {
-      const saved = JSON.parse(raw);
-      console.log('[TimerSetup] Loading initial state from localStorage:', saved);
-      return {
-        mode: saved.mode === 'fixed' || saved.mode === 'per-participant' ? saved.mode : 'per-participant',
-        totalDuration: typeof saved.totalDurationMinutes === 'number' ? saved.totalDurationMinutes : 15,
-        perParticipant: typeof saved.durationPerParticipantSeconds === 'number' ? saved.durationPerParticipantSeconds : 
-                       typeof saved.perParticipantMinutes === 'number' ? saved.perParticipantMinutes * 60 : 60,
-        allowExtension: typeof saved.allowExtension === 'boolean' ? saved.allowExtension : false,
-        extensionAmount: typeof saved.extensionAmountSeconds === 'number' ? saved.extensionAmountSeconds : 
-                        typeof saved.extensionAmountMinutes === 'number' ? saved.extensionAmountMinutes * 60 : 60
-      };
-    }
-  } catch (e) {
-    console.error('[TimerSetup] Error loading initial state from localStorage:', e);
-  }
-  
-  // Default state if localStorage is empty or invalid
-  return {
-    mode: 'per-participant',
-    totalDuration: 15,
-    perParticipant: 60,
-    allowExtension: false,
-    extensionAmount: 60
-  };
-}
+import { timerConfigStorageService } from '../services/timerConfigStorageService';
+import type { StoredTimerConfig } from '../contexts/MeetingContext';
 
 const TimerSetup: React.FC = () => {
-  // Get initial state from localStorage
-  const initialState = React.useMemo(() => getInitialState(), []);
+  // Get initial timer config from storage service
+  const initialConfig = useMemo(() => {
+    const config = timerConfigStorageService.getTimerConfig();
+    
+    // Map the stored config to component state
+    return {
+      mode: config.mode,
+      totalDuration: config.totalDurationMinutes || 15,
+      perParticipant: config.durationPerParticipantSeconds || 60,
+      allowExtension: config.allowExtension,
+      extensionAmount: config.extensionAmountSeconds || 60
+    };
+  }, []);
   
   // State for timer mode
-  const [mode, setMode] = useState<'fixed' | 'per-participant'>(initialState.mode);
-  const [totalDuration, setTotalDuration] = useState<number>(initialState.totalDuration); // in minutes
-  const [perParticipant, setPerParticipant] = useState<number>(initialState.perParticipant); // in seconds
-  const [allowExtension, setAllowExtension] = useState<boolean>(initialState.allowExtension);
-  const [extensionAmount, setExtensionAmount] = useState<number>(initialState.extensionAmount); // in seconds
+  const [mode, setMode] = useState<'fixed' | 'per-participant'>(initialConfig.mode);
+  const [totalDuration, setTotalDuration] = useState<number>(initialConfig.totalDuration); // in minutes
+  const [perParticipant, setPerParticipant] = useState<number>(initialConfig.perParticipant); // in seconds
+  const [allowExtension, setAllowExtension] = useState<boolean>(initialConfig.allowExtension);
+  const [extensionAmount, setExtensionAmount] = useState<number>(initialConfig.extensionAmount); // in seconds
 
-  // We no longer need to load from localStorage on mount since we initialize with the correct values
-
-  // Save preferences to localStorage when state changes
-  React.useEffect(() => {
-    const config = {
+  // Save preferences to storage service when state changes
+  useEffect(() => {
+    const config: StoredTimerConfig = {
       mode,
       totalDurationMinutes: mode === 'fixed' ? totalDuration : undefined,
       // Store per-participant time in seconds
@@ -65,12 +39,11 @@ const TimerSetup: React.FC = () => {
       // Store extension amount in seconds
       extensionAmountSeconds: allowExtension ? extensionAmount : undefined,
     };
-    try {
-      console.log('[TimerSetup] Saving to localStorage:', config);
-      localStorage.setItem(TIMER_SETUP_STORAGE_KEY, JSON.stringify(config));
-    } catch (e) {
-      console.error('[TimerSetup] Error saving to localStorage:', e);
-      // Ignore errors
+    
+    const success = timerConfigStorageService.saveTimerConfig(config);
+    
+    if (!success) {
+      console.error('[TimerSetup] Error saving to storage service');
     }
   }, [mode, totalDuration, perParticipant, allowExtension, extensionAmount]);
   

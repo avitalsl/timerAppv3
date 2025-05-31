@@ -1,58 +1,49 @@
 /**
- * Participants page placeholder component.
- * Replace this with participant management features.
+ * Participants management component.
+ * Allows users to add, select, and manage meeting participants.
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { participantsStorageService } from '../services/participantsStorageService';
+import { participantListVisibilityStorageService } from '../services/participantListVisibilityStorageService';
+import type { Participant } from '../contexts/MeetingContext';
 
 const Participants: React.FC = () => {
-  interface Participant {
-  name: string;
-  included: boolean;
-}
+  const initialNames = ['Avital', 'Asaf', 'Yair', 'Eitan', 'Tal', 'Rotem', 'Yonatan'];
 
-const initialNames = ['Avital', 'Asaf', 'Yair', 'Eitan', 'Tal', 'Rotem', 'Yonatan'];
-const localStorageKey = 'participantsList';
-const PARTICIPANT_LIST_VISIBILITY_KEY = 'participantListVisibilityMode';
-
-// Get initial participants from localStorage or use defaults
-const getInitialParticipants = (): Participant[] => {
-  const stored = localStorage.getItem(localStorageKey);
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.every(p => typeof p.name === 'string' && typeof p.included === 'boolean')) {
-        return parsed;
-      }
-    } catch {}
-  }
-  return initialNames.map(name => ({ name, included: false }));
-};
-
-// Get initial visibility mode from localStorage or use default
-const getInitialVisibilityMode = (): 'all_visible' | 'focus_speaker' => {
-  try {
-    const storedMode = localStorage.getItem(PARTICIPANT_LIST_VISIBILITY_KEY);
-    if (storedMode === 'focus_speaker' || storedMode === 'all_visible') {
-      return storedMode;
+  // Get initial participants using our storage service
+  const initialParticipants = useMemo(() => {
+    const storedParticipants = participantsStorageService.getParticipants();
+    
+    // If we get an empty array, use our default names
+    if (storedParticipants.length === 0) {
+      return initialNames.map(name => ({ name, included: false }));
     }
-  } catch (e) {
-    console.error('[Participants] Error loading visibility mode from localStorage:', e);
-  }
-  return 'all_visible';
-};
+    
+    return storedParticipants;
+  }, []);
 
-const [participants, setParticipants] = useState<Participant[]>(getInitialParticipants());
-const [listVisibilityMode, setListVisibilityMode] = useState<'all_visible' | 'focus_speaker'>(getInitialVisibilityMode());
+  // Get initial visibility mode using our storage service
+  const initialVisibilityMode = useMemo(() => {
+    return participantListVisibilityStorageService.getVisibilityMode();
+  }, []);
 
-// Save to localStorage whenever participants changes
-React.useEffect(() => {
-  localStorage.setItem(localStorageKey, JSON.stringify(participants));
-}, [participants]);
+  const [participants, setParticipants] = useState<Participant[]>(initialParticipants);
+  const [listVisibilityMode, setListVisibilityMode] = useState<'all_visible' | 'focus_speaker'>(initialVisibilityMode);
 
-  // We no longer need to load from localStorage on mount since we initialize with the correct values
+  // Save participants to storage service whenever they change
+  useEffect(() => {
+    const success = participantsStorageService.saveParticipants(participants);
+    if (!success) {
+      console.error('[Participants] Failed to save participants to storage service');
+    }
+  }, [participants]);
 
-  React.useEffect(() => {
-    localStorage.setItem(PARTICIPANT_LIST_VISIBILITY_KEY, listVisibilityMode);
+  // Save visibility mode to storage service whenever it changes
+  useEffect(() => {
+    const success = participantListVisibilityStorageService.saveVisibilityMode(listVisibilityMode);
+    if (!success) {
+      console.error('[Participants] Failed to save visibility mode to storage service');
+    }
   }, [listVisibilityMode]);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');

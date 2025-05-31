@@ -199,6 +199,282 @@ src/
 
 ### Portal Implementation
 ```tsx
+
+# Dynamic Sidebar Feature Control Implementation Plan
+
+## Feature Overview
+Transform the sidebar from displaying static links to all features into a dynamic component that only shows links to features that have been selected by the user in the Feature Selection Panel.
+
+## Current Implementation Analysis
+
+### State Management
+- The application uses React Context (`MeetingContext`) for global state management
+- Selected components are tracked in the `selectedGridComponentIds` state in `MeetingContext`
+- The sidebar currently displays static links to all features regardless of selection status
+
+### Component Structure
+- `Sidebar.tsx`: Contains the sidebar navigation with static links
+- `ComponentPicker.tsx`: Allows users to select which features to include
+- `SetupScreen.tsx`: Manages the feature selection state
+- `MeetingContext.tsx`: Stores selected grid component IDs in the global state
+
+## Implementation Plan
+
+### 1. Update Sidebar Component
+
+#### Modify Sidebar.tsx to render links dynamically
+```tsx
+// Sidebar.tsx
+import { useMeeting } from '../contexts/MeetingContext';
+
+const Sidebar = () => {
+  const { state } = useMeeting();
+  const selectedFeatures = state.selectedGridComponentIds;
+  
+  // Rest of the component...
+  
+  return (
+    <aside data-testid="component-sidebar">
+      {/* Always show Feature Selection (Home) link */}
+      <NavLink to="/" end data-testid="sidebar-nav-link-home">
+        <SettingsIcon />
+        <span>Customize Meeting</span>
+      </NavLink>
+      
+      {/* Always show Timer Setup link */}
+      <NavLink to="/meeting" data-testid="sidebar-nav-link-meeting">
+        <LayoutDashboardIcon />
+        <span>Timer Setup</span>
+      </NavLink>
+      
+      {/* Conditionally render feature links based on selection */}
+      {selectedFeatures.includes('participants') && (
+        <NavLink to="/participants" data-testid="sidebar-nav-link-participants">
+          <UsersIcon />
+          <span>Participants</span>
+        </NavLink>
+      )}
+      
+      {selectedFeatures.includes('links') && (
+        <NavLink to="/links" data-testid="sidebar-nav-link-links">
+          <LinkIcon />
+          <span>Set Links</span>
+        </NavLink>
+      )}
+      
+      {/* Kickoff is always visible */}
+      <div data-testid="sidebar-kickoff" onClick={() => navigate('/kickoff')}>
+        <CalendarIcon />
+        <span>Kickoff</span>
+      </div>
+    </aside>
+  );
+};
+```
+
+### 2. Add Animation for Smooth Transitions
+
+```css
+/* Add to index.css or create a new sidebar.css */
+.sidebar-link-enter {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+}
+
+.sidebar-link-enter-active {
+  opacity: 1;
+  max-height: 60px;
+  transition: opacity 300ms, max-height 300ms;
+}
+
+.sidebar-link-exit {
+  opacity: 1;
+  max-height: 60px;
+}
+
+.sidebar-link-exit-active {
+  opacity: 0;
+  max-height: 0;
+  transition: opacity 300ms, max-height 300ms;
+  overflow: hidden;
+}
+```
+
+### 3. Create a SidebarLink Component for Reusability
+
+```tsx
+// components/SidebarLink.tsx
+import { ReactNode } from 'react';
+import { NavLink } from 'react-router-dom';
+import { CSSTransition } from 'react-transition-group';
+
+interface SidebarLinkProps {
+  to: string;
+  icon: ReactNode;
+  label: string;
+  testId: string;
+  show: boolean;
+}
+
+const SidebarLink = ({ to, icon, label, testId, show }: SidebarLinkProps) => {
+  return (
+    <CSSTransition
+      in={show}
+      timeout={300}
+      classNames="sidebar-link"
+      unmountOnExit
+    >
+      <NavLink
+        to={to}
+        className={({ isActive }) =>
+          `flex items-center py-3 px-4 ${isActive ? 'bg-[#2c4066] border-l-4 border-[#4a9fff]' : ''}`
+        }
+        data-testid={testId}
+      >
+        {icon}
+        <span className="ml-3 hidden tablet:block">{label}</span>
+      </NavLink>
+    </CSSTransition>
+  );
+};
+
+export default SidebarLink;
+```
+
+### 4. Update Feature Selection to Update MeetingContext
+
+Modify `SetupScreen.tsx` to update the MeetingContext when components are toggled:
+
+```tsx
+// In SetupScreen.tsx handleToggleComponent function
+const { state, dispatch } = useMeeting();
+
+const handleToggleComponent = (componentId: string, selected: boolean) => {
+  // Update local state for UI rendering
+  if (selected) {
+    setSelectedComponents(prev => [...prev, componentId]);
+  } else {
+    setSelectedComponents(prev => prev.filter(id => id !== componentId));
+  }
+  
+  // Update MeetingContext
+  const updatedSelectedComponents = selected 
+    ? [...state.selectedGridComponentIds, componentId]
+    : state.selectedGridComponentIds.filter(id => id !== componentId);
+    
+  // Dispatch action to update MeetingContext
+  dispatch({
+    type: 'UPDATE_SELECTED_COMPONENTS',
+    payload: updatedSelectedComponents
+  });
+};
+```
+
+### 5. Mapping Between Component IDs and Routes
+
+Create a utility to map component IDs to their corresponding routes:
+
+```typescript
+// utils/routeMapping.ts
+export const componentToRouteMap: Record<string, string> = {
+  participants: '/participants',
+  links: '/links',
+  notes: '/notes',
+  agenda: '/agenda',
+  sprintGoals: '/sprint-goals',
+  checklist: '/checklist'
+};
+
+export const getRouteForComponent = (componentId: string): string | null => {
+  return componentToRouteMap[componentId] || null;
+};
+```
+
+## Testing Strategy
+
+Following the project's testing guidelines, we'll use Playwright for end-to-end testing. Tests will be located adjacent to the feature they're testing.
+
+### Test Location
+- Create `src/components/Sidebar.test.ts` for testing the dynamic sidebar functionality
+
+### Test Cases
+
+```typescript
+// src/components/Sidebar.test.ts
+import { test, expect } from '@playwright/test';
+
+test.describe('Dynamic Sidebar', () => {
+  test.beforeEach(async ({ page }) => {
+    // Navigate to the setup screen
+    await page.goto('/');
+  });
+
+  test('should only show default links initially', async ({ page }) => {
+    // Check that default links are visible
+    await expect(page.getByTestId('sidebar-nav-link-home')).toBeVisible();
+    await expect(page.getByTestId('sidebar-nav-link-meeting')).toBeVisible();
+    await expect(page.getByTestId('sidebar-kickoff')).toBeVisible();
+    
+    // Check that feature-specific links are not visible
+    await expect(page.getByTestId('sidebar-nav-link-participants')).not.toBeVisible();
+    await expect(page.getByTestId('sidebar-nav-link-links')).not.toBeVisible();
+  });
+
+  test('should show participants link when participants feature is selected', async ({ page }) => {
+    // Select the participants component
+    await page.getByTestId('component-picker-checkbox-participants').click();
+    
+    // Check that participants link appears in sidebar
+    await expect(page.getByTestId('sidebar-nav-link-participants')).toBeVisible();
+  });
+
+  test('should remove links link when links feature is deselected', async ({ page }) => {
+    // First select the links component
+    await page.getByTestId('component-picker-checkbox-links').click();
+    
+    // Verify links link is visible
+    await expect(page.getByTestId('sidebar-nav-link-links')).toBeVisible();
+    
+    // Deselect the links component
+    await page.getByTestId('component-picker-checkbox-links').click();
+    
+    // Verify links link is no longer visible
+    await expect(page.getByTestId('sidebar-nav-link-links')).not.toBeVisible();
+  });
+
+  test('should navigate to feature page when sidebar link is clicked', async ({ page }) => {
+    // Select the participants component
+    await page.getByTestId('component-picker-checkbox-participants').click();
+    
+    // Click on the participants link
+    await page.getByTestId('sidebar-nav-link-participants').click();
+    
+    // Verify navigation to participants page
+    await expect(page).toHaveURL(/.*\/participants/);
+  });
+});
+```
+
+### Test IDs
+Update the data-testid attributes in the sidebar component:
+```
+- `sidebar-nav-link-{component.id}`: For each dynamic sidebar link (e.g., `sidebar-nav-link-participants`)
+- `sidebar-link-container`: Container for all dynamic links
+```
+
+## Implementation Timeline
+
+1. **Day 1**: Update Sidebar component to read from layout configuration
+2. **Day 2**: Implement animations and SidebarLink component
+3. **Day 3**: Testing and refinement
+
+## Technical Considerations
+
+- Performance: Avoid unnecessary re-renders by using React.memo or useMemo for the Sidebar component
+- State Management: Add a new action type to MeetingContext for updating selected components
+- Responsive Design: Maintain the existing responsive behavior for mobile/tablet/desktop views
+- Backward Compatibility: Ensure existing routes and navigation still work correctly
 // Example of Portal implementation
 import ReactDOM from 'react-dom';
 
@@ -490,3 +766,91 @@ Enable users to choose a kickoff style for their meeting. Options include starti
 	•	This is a UI-only implementation.
 	•	When user changes selections, the setting should be saved in localStorage under the kickoffSetting key.
 	•	No backend communication or other side effects are required.
+
+---
+
+## 🧱 Modular and Robust State Persistence Architecture
+
+This section outlines a refactored architecture for managing persistent state across the application using `localStorage`, aimed at improving modularity, reducing repetition, handling errors safely, and easing long-term maintenance.
+
+### ✅ Goals
+
+* Eliminate repetitive boilerplate for loading/saving state from/to localStorage
+* Prevent silent failures due to JSON parsing or writing errors
+* Improve maintainability and testability
+* Centralize all localStorage access for future flexibility
+
+### 🚀 Key Components
+
+#### 1. `usePersistentState` Hook
+A generic React hook that replaces scattered `useState` + `useEffect` + `localStorage` logic:
+
+```tsx
+function usePersistentState<T>(
+  key: string,
+  defaultValue: T,
+  options?: {
+    validate?: (value: unknown) => value is T;
+    migrate?: (legacyData: any) => T;
+  }
+): [T, React.Dispatch<React.SetStateAction<T>>]
+```
+
+#### 2. `storageService.ts`
+A centralized service that encapsulates all localStorage operations:
+
+```ts
+export const storageService = {
+  get<T>(key: string, defaultValue: T, options?): T { ... },
+  set<T>(key: string, value: T): boolean { ... },
+  remove(key: string): void { ... },
+  clear(prefix?: string): void { ... }
+};
+```
+
+#### 3. Domain-Specific Storage Services
+Type-safe interfaces for each data domain in the application:
+
+```ts
+// Example for timer config
+export const timerConfigService = {
+  getTimerConfig(): StoredTimerConfig { ... },
+  saveTimerConfig(config: StoredTimerConfig): boolean { ... }
+};
+```
+
+#### 4. (Optional) `ConfigContext`
+A React Context that loads and provides all app configurations:
+
+```tsx
+const { layoutConfig, visibilityConfig, timerConfig, kickoffSettings } = useConfig();
+```
+
+### 📊 Implementation Benefits
+
+1. **DRY Code**: Eliminate repetitive localStorage access patterns
+2. **Error Resilience**: Centralized error handling prevents silent failures  
+3. **Type Safety**: Better TypeScript integration with validation
+4. **Testability**: Easier to mock for unit testing
+5. **Future-Proofing**: Easy to switch to other storage mechanisms
+
+### 📝 Detailed Implementation Plan
+
+A comprehensive implementation plan has been created at:
+`/Users/avital.sloma/NewTimerApp/newStandApp/docs/localStorage-architecture.md`
+
+### 🧹 Cleanup Phase
+
+Once the new architecture is implemented and verified:
+
+1. **Remove Legacy Code**:
+   - Delete unused `useEffect` hooks that directly interact with localStorage
+   - Remove helper functions used for parsing/storing data in components
+   - Eliminate duplicate logic that has been abstracted into the new services
+
+2. **Standardize Implementation**:
+   - Ensure all components use the same patterns for state persistence
+   - Run a codebase search for `localStorage.` to catch any missed instances
+   - Update documentation to reflect the new state management approach
+
+This cleanup ensures the codebase stays clean, consistent, and easier to maintain.

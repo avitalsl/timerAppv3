@@ -1,9 +1,6 @@
-import { test, expect, type Page } from '@playwright/test';
-
-// --- Constants for LocalStorage Keys ---
-const TIMER_CONFIG_KEY = 'timerSetupConfig';
-const PARTICIPANTS_LIST_KEY = 'participantsList';
-const KICKOFF_SETTINGS_KEY = 'kickoffSetting';
+import { test, expect } from '@playwright/test';
+import type { KickoffSetting, Participant, StoredTimerConfig } from '../../contexts/MeetingContext';
+import { clearAppStorage, setupTestStorage } from '../../services/tests/mockStorageForTests';
 
 // --- Constants for Page URLs (if directly navigating) ---
 // const TIMER_SETUP_PAGE_URL = '/timer-setup';
@@ -12,54 +9,11 @@ const APP_ROOT_URL = '/'; // Assuming tests start from the root
 
 // --- Constants for Data Test IDs ---
 const START_MEETING_BUTTON_TEST_ID = 'start-meeting-button'; // Assumed ID for the global start meeting button
-const MEETING_OVERLAY_TEST_ID = 'meeting-overlay';
+const MEETING_OVERLAY_TEST_ID = 'meeting-screen-container';
 const TIMER_WIDGET_TEST_ID = 'layout-component-timer';
-const TIMER_DISPLAY_TEST_ID = 'timer-display';
+const TIMER_DISPLAY_TEST_ID = 'timer-circular-time-text';
 const TIMER_PLAY_PAUSE_BUTTON_TEST_ID = 'timer-play-pause-button';
 const TIMER_NEXT_RESET_BUTTON_TEST_ID = 'timer-next-reset-button';
-
-// --- Helper Types (mirroring application types) ---
-interface StoredTimerConfig {
-  mode: 'fixed' | 'per-participant';
-  totalDurationMinutes?: number;
-  durationPerParticipantSeconds?: number;
-  allowExtension: boolean;
-}
-
-interface Participant {
-  id: string;
-  name: string;
-  include: boolean;
-}
-
-interface KickoffSetting {
-  mode: 'getDownToBusiness' | 'storyTime';
-  storyOption: 'random' | 'manual' | null;
-}
-
-// --- Helper Functions ---
-async function clearMeetingLocalStorage(page: Page) {
-  await page.evaluate((keys) => {
-    keys.forEach(key => localStorage.removeItem(key));
-  }, [TIMER_CONFIG_KEY, PARTICIPANTS_LIST_KEY, KICKOFF_SETTINGS_KEY]);
-}
-
-async function setupLocalStorage(page: Page, timerConfig: StoredTimerConfig, participants: Participant[], kickoffSetting: KickoffSetting) {
-  await page.evaluate((data) => {
-    localStorage.setItem(data.timerConfigKey, JSON.stringify(data.timerConfig));
-    localStorage.setItem(data.participantsListKey, JSON.stringify(data.participants));
-    localStorage.setItem(data.kickoffSettingsKey, JSON.stringify(data.kickoffSetting));
-  }, {
-    timerConfigKey: TIMER_CONFIG_KEY,
-    timerConfig,
-    participantsListKey: PARTICIPANTS_LIST_KEY,
-    participants,
-    kickoffSettingsKey: KICKOFF_SETTINGS_KEY,
-    kickoffSetting
-  });
-  await page.reload(); // Reload for settings to take effect if app reads on init
-  await page.waitForLoadState('networkidle');
-}
 
 const formatTime = (seconds: number): string => {
   const mins = Math.floor(seconds / 60);
@@ -75,17 +29,21 @@ test.describe('Meeting Timer E2E Tests', () => {
       }
     });
     await page.goto(APP_ROOT_URL);
-    await clearMeetingLocalStorage(page);
-    // Note: setupLocalStorage will be called within each test or a nested describe block
+    await clearAppStorage(page);
+    // Note: setupTestStorage will be called within each test or a nested describe block
   });
 
   test.describe('Fixed Time Mode', () => {
     const fixedModeConfig: StoredTimerConfig = { mode: 'fixed', totalDurationMinutes: 1, allowExtension: false };
-    const defaultParticipants: Participant[] = [{ id: '1', name: 'Alice', include: true }];
+    const defaultParticipants: Participant[] = [{ name: 'Alice', included: true }];
     const defaultKickoff: KickoffSetting = { mode: 'getDownToBusiness', storyOption: null };
 
     test.beforeEach(async ({ page }) => {
-      await setupLocalStorage(page, fixedModeConfig, defaultParticipants, defaultKickoff);
+      await setupTestStorage(page, {
+        timerConfig: fixedModeConfig,
+        participants: defaultParticipants,
+        kickoffSettings: defaultKickoff
+      });
       await page.getByTestId(START_MEETING_BUTTON_TEST_ID).click();
       await expect(page.getByTestId(MEETING_OVERLAY_TEST_ID)).toBeVisible();
       await expect(page.getByTestId(MEETING_OVERLAY_TEST_ID).getByTestId(TIMER_WIDGET_TEST_ID)).toBeVisible();
@@ -122,15 +80,19 @@ test.describe('Meeting Timer E2E Tests', () => {
   test.describe('Per Participant Mode', () => {
     const perParticipantConfig: StoredTimerConfig = { mode: 'per-participant', durationPerParticipantSeconds: 5, allowExtension: false };
     const multiParticipants: Participant[] = [
-      { id: '1', name: 'Alice', include: true },
-      { id: '2', name: 'Bob', include: true },
-      { id: '3', name: 'Charlie', include: false }, // Excluded
-      { id: '4', name: 'Diana', include: true },
+      { name: 'Alice', included: true },
+      { name: 'Bob', included: true },
+      { name: 'Charlie', included: false }, // Excluded
+      { name: 'Diana', included: true },
     ];
     const defaultKickoff: KickoffSetting = { mode: 'getDownToBusiness', storyOption: null };
 
     test.beforeEach(async ({ page }) => {
-      await setupLocalStorage(page, perParticipantConfig, multiParticipants, defaultKickoff);
+      await setupTestStorage(page, {
+        timerConfig: perParticipantConfig,
+        participants: multiParticipants,
+        kickoffSettings: defaultKickoff
+      });
       await page.getByTestId(START_MEETING_BUTTON_TEST_ID).click();
       await expect(page.getByTestId(MEETING_OVERLAY_TEST_ID)).toBeVisible();
     });
@@ -184,7 +146,11 @@ test.describe('Meeting Timer E2E Tests', () => {
   test('closing overlay should end meeting', async ({ page }) => {
     // Setup a quick meeting
     const fixedModeConfig: StoredTimerConfig = { mode: 'fixed', totalDurationMinutes: 1, allowExtension: false };
-    await setupLocalStorage(page, fixedModeConfig, [{ id: '1', name: 'Test', include: true }], { mode: 'getDownToBusiness', storyOption: null });
+    await setupTestStorage(page, {
+      timerConfig: fixedModeConfig,
+      participants: [{ name: 'Test', included: true }],
+      kickoffSettings: { mode: 'getDownToBusiness', storyOption: null }
+    });
     await page.getByTestId(START_MEETING_BUTTON_TEST_ID).click();
     await expect(page.getByTestId(MEETING_OVERLAY_TEST_ID)).toBeVisible();
 

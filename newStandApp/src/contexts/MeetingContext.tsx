@@ -65,7 +65,8 @@ export type MeetingAction =
   | { type: 'TICK' }
   | { type: 'NEXT_PARTICIPANT' }
   | { type: 'ADD_TIME' }
-  | { type: 'SET_TIMER_STATUS'; payload: MeetingState['timerStatus'] };
+  | { type: 'SET_TIMER_STATUS'; payload: MeetingState['timerStatus'] }
+  | { type: 'UPDATE_SELECTED_COMPONENTS'; payload: string[] };
 
 // --- Reducer --- 
 const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingState => {
@@ -188,6 +189,12 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
       return {
         ...state,
         currentTimeSeconds: state.currentTimeSeconds + state.timerConfig.extensionAmountSeconds
+      };
+    case 'UPDATE_SELECTED_COMPONENTS':
+      console.log('[MeetingContext] UPDATE_SELECTED_COMPONENTS:', action.payload);
+      return {
+        ...state,
+        selectedGridComponentIds: action.payload
       };
     default:
       return state;

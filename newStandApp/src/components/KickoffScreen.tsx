@@ -1,73 +1,42 @@
-import React, { useState, useEffect } from 'react';
-
-interface KickoffSetting {
-  mode: 'getDownToBusiness' | 'storyTime';
-  storyOption: 'random' | 'manual' | null;
-}
-
-const KICKOFF_SETTING_KEY = 'kickoffSetting';
+import React, { useState, useEffect, useMemo } from 'react';
+import { kickoffSettingsStorageService } from '../services/kickoffSettingsStorageService';
+import type { KickoffSetting } from '../contexts/MeetingContext';
 
 /**
  * KickoffScreen - Allows users to define how the meeting should start.
  */
-// Function to get initial kickoff settings from localStorage
-const getInitialKickoffSettings = (): { mode: 'getDownToBusiness' | 'storyTime'; storyOption: 'random' | 'manual' | null } => {
-  console.log('[KickoffScreen] Getting initial kickoff settings');
-  try {
-    const storedSettings = localStorage.getItem(KICKOFF_SETTING_KEY);
-    console.log('[KickoffScreen] storedSettings from localStorage:', storedSettings);
-    if (storedSettings) {
-      const parsedSettings: KickoffSetting = JSON.parse(storedSettings);
-      console.log('[KickoffScreen] parsedSettings:', parsedSettings);
-      let finalStoryOption = parsedSettings.storyOption;
-      
-      // Ensure storyOption is valid when mode is storyTime
-      if (parsedSettings.mode === 'storyTime' && finalStoryOption === null) {
-        finalStoryOption = 'random';
-        console.log('[KickoffScreen] Defaulted storyOption to random');
-      }
-      
-      return {
-        mode: parsedSettings.mode,
-        storyOption: finalStoryOption
-      };
-    }
-  } catch (error) {
-    console.error('[KickoffScreen] Error parsing kickoff settings:', error);
-  }
-  
-  // Default settings if localStorage is empty or invalid
-  return {
-    mode: 'getDownToBusiness',
-    storyOption: null
-  };
-};
 
 const KickoffScreen: React.FC = () => {
-  // Get initial settings from localStorage
-  const initialSettings = React.useMemo(() => getInitialKickoffSettings(), []);
+  // Get initial settings from storage service
+  const initialSettings = useMemo(() => {
+    // Get settings using the storage service
+    const settings = kickoffSettingsStorageService.getKickoffSettings();
+    return settings;
+  }, []);
   
-  // Initialize state with values from localStorage
+  // Initialize state with values from storage service
   const [kickoffMode, setKickoffMode] = useState<'getDownToBusiness' | 'storyTime'>(initialSettings.mode);
   const [storyOption, setStoryOption] = useState<'random' | 'manual' | null>(initialSettings.storyOption);
 
-  // Save settings to localStorage when they change
+  // Save settings to storage service when they change
   useEffect(() => {
-    console.log(`[KickoffScreen] Save effect: START - mode: ${kickoffMode}, option: ${storyOption}`);
-    
+    // Ensure story option is 'random' when in storyTime mode with null option
     let effectiveStoryOption = storyOption;
     if (kickoffMode === 'storyTime' && storyOption === null) {
       effectiveStoryOption = 'random';
-      console.log('[KickoffScreen] Save effect: Defaulted effectiveStoryOption to random for saving');
     }
 
+    // Prepare settings object to save
     const settingsToSave: KickoffSetting = {
       mode: kickoffMode,
       storyOption: kickoffMode === 'storyTime' ? effectiveStoryOption : null,
     };
-    console.log('[KickoffScreen] Save effect: Saving to localStorage:', settingsToSave);
-    localStorage.setItem(KICKOFF_SETTING_KEY, JSON.stringify(settingsToSave));
-    console.log('[KickoffScreen] Save effect: END');
+    
+    // Save settings and handle errors
+    const success = kickoffSettingsStorageService.saveKickoffSettings(settingsToSave);
+    if (!success) {
+      console.error('[KickoffScreen] Failed to save kickoff settings');
+    }
   }, [kickoffMode, storyOption]); // Only depend on the actual state values
 
   const handleKickoffModeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,7 +55,7 @@ const KickoffScreen: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 max-w-[1200px] mx-auto" data-testid="kickoff-screen-card">
+    <div data-testid="kickoff-screen-card">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-gray-500 mr-2">

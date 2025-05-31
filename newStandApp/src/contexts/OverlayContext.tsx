@@ -1,13 +1,6 @@
 import React, { createContext, useContext, useState, useMemo } from 'react';
 import type { ReactNode } from 'react';
-import { useMeeting, type StoredTimerConfig, type Participant, type KickoffSetting } from './MeetingContext';
-import type { LayoutConfiguration } from '../types/layoutTypes';
-
-// LocalStorage Keys
-const KICKOFF_SETTING_KEY = 'kickoffSetting';
-const TIMER_SETUP_STORAGE_KEY = 'timerSetupConfig';
-const PARTICIPANTS_STORAGE_KEY = 'participantsList';
-const LAYOUT_CONFIG_KEY = 'meetingLayoutConfig';
+import { useMeeting } from './MeetingContext';
 
 // Define the shape of our context
 interface OverlayContextType {
@@ -36,73 +29,8 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({ children }) =>
 
   const showOverlay = () => {
     console.log('[OverlayContext] showOverlay called');
-    // Load configurations from localStorage
-    let storedTimerConfig: StoredTimerConfig = {
-      mode: 'fixed',
-      totalDurationMinutes: 15,
-      allowExtension: false,
-    };
-    try {
-      const rawTimerConfig = localStorage.getItem(TIMER_SETUP_STORAGE_KEY);
-      if (rawTimerConfig) storedTimerConfig = JSON.parse(rawTimerConfig);
-    } catch (e) { console.error('Error parsing timerSetupConfig from localStorage', e); }
-
-    let participantsList: Participant[] = [];
-    try {
-      const rawParticipants = localStorage.getItem(PARTICIPANTS_STORAGE_KEY);
-      if (rawParticipants) participantsList = JSON.parse(rawParticipants);
-      if (!Array.isArray(participantsList)) participantsList = []; // Ensure it's an array
-    } catch (e) { console.error('Error parsing participantsList from localStorage', e); }
-
-    let kickoffSettings: KickoffSetting = {
-      mode: 'getDownToBusiness',
-      storyOption: null,
-    };
-    try {
-      const rawKickoff = localStorage.getItem(KICKOFF_SETTING_KEY);
-      if (rawKickoff) kickoffSettings = JSON.parse(rawKickoff);
-    } catch (e) { console.error('Error parsing kickoffSetting from localStorage', e); }
-
-    // Retrieve and parse LayoutConfiguration to get selected grid components
-    let selectedGridComponentIds: string[] = [];
-    try {
-      const layoutConfigData = localStorage.getItem(LAYOUT_CONFIG_KEY);
-      if (layoutConfigData) {
-        const parsedLayoutConfig: LayoutConfiguration = JSON.parse(layoutConfigData);
-        if (parsedLayoutConfig && parsedLayoutConfig.components) {
-          selectedGridComponentIds = Object.entries(parsedLayoutConfig.components)
-            .filter(([_, component]) => component.visible)
-            .map(([id]) => id);
-        }
-      } else {
-        console.warn(`[OverlayContext] No layoutConfig found in localStorage, defaulting to no extra grid components.`);
-      }
-    } catch (error) {
-      console.error('[OverlayContext] Error parsing layoutConfig from localStorage:', error);
-      // Keep default (empty array) if parsing fails
-    }
-
-    // Get participant list visibility mode before dispatch
-    let participantListVisibilityMode: 'all_visible' | 'focus_speaker' = 'all_visible';
-    try {
-      const mode = localStorage.getItem('participantListVisibilityMode');
-      if (mode === 'focus_speaker' || mode === 'all_visible') {
-        participantListVisibilityMode = mode;
-      }
-    } catch (e) {
-      console.error('[OverlayContext] Error loading participantListVisibilityMode:', e);
-    }
-    // Dispatch START_MEETING action
-    meetingDispatch({
-      type: 'START_MEETING',
-      payload: {
-        storedTimerConfig,
-        participants: participantsList.filter(p => p.included), // Ensure only included participants are passed
-        kickoffSettings,
-        selectedGridComponentIds,
-        participantListVisibilityMode,
-      },
-    });
+    // The MeetingContext state should already be set by the component initiating the meeting (e.g., TopBarMeetingButton).
+    // This function is now only responsible for making the overlay visible.
     setIsOverlayVisible(true);
   };
 
