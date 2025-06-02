@@ -6,6 +6,7 @@ import MeetingOverlay from '../components/MeetingOverlay'
 import { OverlayProvider } from '../contexts/OverlayContext'
 
 const MainLayout = () => {
+  console.log('[MainLayout] Component rendering');
   return (
     <OverlayProvider>
       <div className="flex h-screen w-full" data-testid="layout-main">
