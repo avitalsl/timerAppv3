@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { meetingSettingsService, type MeetingSettings } from '../services/meetingSettingsService';
+import { useComponentVisibility } from '../hooks/useComponentVisibility';
 import type { StoredTimerConfig, Participant, KickoffSetting } from '../contexts/MeetingContext';
 import type { ParticipantListVisibilityMode } from '../services/participantListVisibilityStorageService';
 
@@ -8,15 +9,18 @@ import type { ParticipantListVisibilityMode } from '../services/participantListV
  * @returns Methods and state for working with meeting settings
  */
 export function useMeetingSettings() {
+  const { visibilityConfig } = useComponentVisibility();
+  const { visibleComponents } = visibilityConfig;
+
   // Track the complete settings state
   const [settings, setSettings] = useState<MeetingSettings>(
-    meetingSettingsService.getAllSettings()
+    meetingSettingsService.getAllSettings(visibleComponents)
   );
 
   // Refresh all settings from storage
   const refreshSettings = useCallback(() => {
-    setSettings(meetingSettingsService.getAllSettings());
-  }, []);
+    setSettings(meetingSettingsService.getAllSettings(visibleComponents));
+  }, [visibleComponents]);
 
   // Individual setting updaters with storage sync
   const updateTimerConfig = useCallback((config: StoredTimerConfig) => {
@@ -43,10 +47,10 @@ export function useMeetingSettings() {
     return success;
   }, []);
 
-  const updateVisibleComponents = useCallback((visibleComponents: string[]) => {
-    const success = meetingSettingsService.saveVisibleComponents(visibleComponents);
+  const updateVisibleComponents = useCallback((newVisibleComponents: string[]) => {
+    const success = meetingSettingsService.saveVisibleComponents(newVisibleComponents);
     if (success) {
-      setSettings(prev => ({ ...prev, visibleComponents }));
+      setSettings(prev => ({ ...prev, visibleComponents: newVisibleComponents }));
     }
     return success;
   }, []);
@@ -62,14 +66,14 @@ export function useMeetingSettings() {
   return {
     // Current state
     settings,
-    
+
     // Individual settings for convenience
     timerConfig: settings.timerConfig,
     participants: settings.participants,
     kickoffSettings: settings.kickoffSettings,
     visibleComponents: settings.visibleComponents,
     participantListVisibilityMode: settings.participantListVisibilityMode,
-    
+
     // Updaters
     refreshSettings,
     updateTimerConfig,
