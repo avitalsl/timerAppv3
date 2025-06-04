@@ -32,12 +32,12 @@ This approach ensures consistency, improves maintainability, and provides robust
    - `participantsStorageService.ts` - Manages participant list
    - `participantListVisibilityStorageService.ts` - Manages participant list visibility mode
    - `timerConfigStorageService.ts` - Manages timer configuration
-   - `componentVisibilityStorageService.ts` - Manages component visibility settings
+   - `componentVisibilityStorageService.ts` - Manages component visibility settings (used only by the context provider)
    - `layoutStorageService.ts` - Manages layout configuration
 
 3. **Custom React Hooks**
    - `usePersistentState.ts` - Generic hook for persisting any state to localStorage
-   - `useComponentVisibility.ts` - Manages component visibility with persistence
+   - `useComponentVisibility.ts` (now context-driven) - All consumers use this hook to access the global visibility state provided by `ComponentVisibilityProvider`. No longer manages its own persistence.
    - `useLayoutStorage.ts` - Manages layout configuration with persistence
 
 4. **Centralized Access**
@@ -368,11 +368,27 @@ export const kickoffSettingsService = {
 };
 ```
 
-### 3. Create Persistent State Hook (`src/hooks/usePersistentState.ts`)
+### 3. Create Visibility Context Provider (`src/hooks/ComponentVisibilityProvider.tsx`)
 
 ```typescript
-import { useState, useEffect, useCallback } from 'react';
-import { storageService } from '../services/storageService';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { componentVisibilityStorageService } from '../services/componentVisibilityStorageService';
+
+const ComponentVisibilityContext = createContext();
+
+export const ComponentVisibilityProvider = ({ children }) => {
+  // ...state logic and storage sync as described in implementation plan...
+};
+
+export function useComponentVisibility() {
+  const ctx = useContext(ComponentVisibilityContext);
+  if (!ctx) throw new Error('useComponentVisibility must be used within a ComponentVisibilityProvider');
+  return ctx;
+}
+```
+
+- The provider initializes visibility state from storage once, then serves as the single source of truth for all consumers.
+- All UI components now use the `useComponentVisibility` hook to read/update visibility; they no longer access storage directly.
 
 /**
  * A hook for managing state that is persisted to localStorage
@@ -777,11 +793,8 @@ import { usePersistentState } from './usePersistentState';
 import type { ComponentVisibilityConfig } from '../types/componentVisibilityTypes';
 import { DEFAULT_VISIBILITY_CONFIG } from '../types/componentVisibilityTypes';
 
-export function useComponentVisibility(key: string = 'meetingComponentsConfig') {
-  const [visibilityConfig, setVisibilityConfig] = usePersistentState<ComponentVisibilityConfig>(
-    key,
-    DEFAULT_VISIBILITY_CONFIG,
-    {
+// Deprecated: direct persistence hook pattern
+// All consumers now use the context-based hook
       validate: (value): value is ComponentVisibilityConfig => {
         return value !== null &&
                typeof value === 'object' &&
@@ -904,10 +917,10 @@ const [timerState, setTimerState] = usePersistentState(
    - Test `storageService.get()` with valid and invalid JSON
 
 2.  **Component Tests**:
-    *   Test that components correctly initialize from storage services
-    *   Test that components correctly save to storage services
-    *   Test component behavior when storage operations fail
-    *   Verify components no longer access localStorage directly
+    *   Test that components correctly initialize from the context provider
+    *   Test that components correctly update visibility through the provider
+    *   Test component behavior when context/provider fails to load from storage
+    *   Verify components no longer access localStorage or storage services directly
 
 3.  **Integration Tests**:
     *   Test persistence between component unmounts/remounts
@@ -920,7 +933,7 @@ const [timerState, setTimerState] = usePersistentState(
     *   Test backward compatibility with legacy localStorage formats
     *   Verify data integrity during migration
     *   Test fallback to defaults when legacy data cannot be migrated
-    *   Test that changes in one component are reflected in another when using the same key
+    *   Test that changes in one component are reflected in all others via the context
 
 ## 🔄 Migration Strategy
 
@@ -938,9 +951,9 @@ const [timerState, setTimerState] = usePersistentState(
 The following cleanup tasks have been completed:
 
 1. **Removed direct localStorage access**
-   - All components now use appropriate storage services
-   - No direct localStorage.getItem/setItem calls remain in components
-   - The only direct localStorage access is encapsulated in the base storageService
+   - All components now use the context provider for component visibility
+   - No direct localStorage.getItem/setItem or storage service calls remain in UI components for visibility
+   - The only direct localStorage access is encapsulated in the base storageService and the context provider
 
 2. **Cleaned up legacy code**
    - Removed helper functions for parsing/serializing localStorage data
@@ -948,8 +961,8 @@ The following cleanup tasks have been completed:
    - Removed redundant localStorage key constants from components
 
 3. **Standardized implementation**
-   - Ensured all components use the same pattern for state persistence
-   - Eliminated component-specific workarounds with the new architecture
+   - Ensured all components use the context pattern for component visibility
+   - Eliminated component-specific workarounds and direct storage access
    - Used consistent patterns for error handling across all components
 
 4. **Removed excessive logging**

@@ -12,11 +12,13 @@ import Participants from './pages/Participants'
 import LinksSetup from './pages/LinksSetup'
 import KickoffScreen from './components/KickoffScreen'
 import { MeetingProvider } from './contexts/MeetingContext';
+import { ComponentVisibilityProvider } from './hooks/ComponentVisibilityProvider';
 
 function App() {
   return (
     <Router>
       <MeetingProvider>
+        <ComponentVisibilityProvider>
         <div className="w-full min-h-screen bg-gray-100">
           <Routes>
             <Route path="/" element={<MainLayout />}>
@@ -29,6 +31,7 @@ function App() {
             </Route>
           </Routes>
         </div>
+        </ComponentVisibilityProvider>
       </MeetingProvider>
     </Router>
   )
