@@ -6,11 +6,11 @@ import {
   UsersIcon,
   LinkIcon,
 } from 'lucide-react'
-import { useMeeting } from '../contexts/MeetingContext';
+import { useComponentVisibility } from '../hooks/useComponentVisibility';
 
 const Sidebar = () => {
-  const { state } = useMeeting();
-  const selectedFeatures = state.selectedGridComponentIds;
+  const { visibilityConfig } = useComponentVisibility();
+  const selectedFeatures = visibilityConfig?.visibleComponents || [];
 
   // 
   // Sidebar responsive states:

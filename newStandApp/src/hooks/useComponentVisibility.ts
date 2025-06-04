@@ -1,59 +1,17 @@
-import { useState } from 'react';
-import type { ComponentVisibilityConfig } from '../types/componentVisibilityTypes';
-import { componentVisibilityStorageService } from '../services/componentVisibilityStorageService';
-
-// The getInitialVisibilityConfig function is no longer needed as we're using the storage service
+// src/hooks/useComponentVisibility.ts
+import { useContext } from 'react';
+import { ComponentVisibilityContext } from './ComponentVisibilityProvider';
 
 /**
- * Hook for managing component visibility state
+ * Hook to access the component visibility context
+ * Must be used within a <ComponentVisibilityProvider>
  */
-export function useComponentVisibility(key: string = 'meetingComponentsConfig') {
-  // Initialize state with values from storage service
-  const [visibilityConfig, setVisibilityConfig] = useState<ComponentVisibilityConfig>(
-    () => componentVisibilityStorageService.getVisibilityConfig(key)
-  );
-  const [isLoaded] = useState(true); // Always consider loaded when using the storage service
-  
-  // Save visibility config to storage
-  const saveVisibilityConfig = (newConfig: ComponentVisibilityConfig) => {
-    const success = componentVisibilityStorageService.saveVisibilityConfig(newConfig, key);
-    if (success) {
-      setVisibilityConfig(newConfig);
-    } else {
-      console.error(`[useComponentVisibility] Failed to save visibility config to key: ${key}`);
-    }
-  };
+export function useComponentVisibility() {
+  const ctx = useContext(ComponentVisibilityContext);
 
-  // Convenience method to toggle a component's visibility
-  const toggleComponentVisibility = (componentId: string, visible: boolean) => {
-    const currentVisibleComponents = [...visibilityConfig.visibleComponents];
-    
-    if (visible && !currentVisibleComponents.includes(componentId)) {
-      // Add component to visible list
-      currentVisibleComponents.push(componentId);
-    } else if (!visible) {
-      // Remove component from visible list
-      const index = currentVisibleComponents.indexOf(componentId);
-      if (index !== -1) {
-        currentVisibleComponents.splice(index, 1);
-      }
-    }
+  if (!ctx) {
+    throw new Error('useComponentVisibility must be used within a ComponentVisibilityProvider');
+  }
 
-    saveVisibilityConfig({
-      visibleComponents: currentVisibleComponents
-    });
-  };
-
-  // Get the list of visible component IDs
-  const getVisibleComponentIds = (): string[] => {
-    return visibilityConfig.visibleComponents;
-  };
-
-  return { 
-    visibilityConfig, 
-    saveVisibilityConfig, 
-    toggleComponentVisibility,
-    getVisibleComponentIds,
-    isLoaded
-  };
+  return ctx;
 }

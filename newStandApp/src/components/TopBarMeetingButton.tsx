@@ -9,21 +9,16 @@ import { meetingSettingsService } from '../services/meetingSettingsService';
  * Function to get all initial meeting settings using the new storage services
  * This centralizes all storage access in one place with consistent error handling
  */
-function getInitialMeetingSettings() {
-  // Get all settings from the meetingSettingsService
-  const  settings = meetingSettingsService.getAllSettings();
-  console.log('Initial meeting settings:', settings);
-  return settings;
-}
 
 export default function TopBarMeetingButton() {
   const { showOverlay, isOverlayVisible } = useOverlay();
   const { dispatch } = useMeeting();
+const { visibleComponents } = useComponentVisibility().visibilityConfig;
   const [hasLoggedInitialConfig, setHasLoggedInitialConfig] = useState(false);
 
   const handleClick = () => {
     // Get all necessary settings from the storage service
-    const { timerConfig, participants, kickoffSettings, participantListVisibilityMode, visibleComponents } = getInitialMeetingSettings();
+    const { timerConfig, participants, kickoffSettings, participantListVisibilityMode } = meetingSettingsService.getAllSettings(visibleComponents);
     console.log('Start Meeting settings:', {
       timerConfig,
       participants,
