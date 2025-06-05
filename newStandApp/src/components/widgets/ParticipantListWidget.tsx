@@ -45,7 +45,7 @@ const ParticipantListWidget: React.FC = () => {
 
           // Apply highlighting for the current speaker, typically most relevant in per-participant mode
           if (isCurrentSpeaker && timerConfig?.mode === 'per-participant') {
-            itemClasses += " bg-primary-light text-primary-dark font-semibold ring-2 ring-primary-medium";
+            itemClasses += " bg-primary-light text-primary-dark font-semibold";
           } else {
             itemClasses += " text-gray-800";
           }
