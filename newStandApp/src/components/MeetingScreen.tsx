@@ -1,8 +1,9 @@
 import React from 'react';
 import TimerWidget from './widgets/TimerWidget';
 import { useMeeting } from '../contexts/MeetingContext';
-
+import { ComponentType, COMPONENT_DEFINITIONS } from '../types/layoutTypes';
 import ParticipantListWidget from './widgets/ParticipantListWidget';
+import StoryWidget from './widgets/StoryWidget'; // Import StoryWidget
 // Placeholder Widgets - these should be actual component imports
 const PlaceholderWidget: React.FC<{ name: string }> = ({ name }) => (
   <div style={{ padding: '1rem', border: '1px solid #ddd', backgroundColor: '#f9f9f9', height: '100%' }}>
@@ -25,6 +26,7 @@ const componentRegistry: Record<string, React.FC<any>> = {
   agenda: AgendaWidget,
   sprintGoals: SprintGoalsWidget,
   checklist: ChecklistWidget,
+  [ComponentType.STORY]: StoryWidget, // Added StoryWidget to the registry
   // Timer is handled separately in the sidebar
 };
 
@@ -34,10 +36,18 @@ const MeetingScreen: React.FC = () => {
   const { state } = useMeeting();
   const { selectedGridComponentIds } = state;
 
-  // Filter out 'timer' as it's always in the sidebar, and ensure component exists in registry
+  // Filter out 'timer', ensure component exists in registry, get definition, and sort by renderPriority
   const componentsToRender = selectedGridComponentIds
-    .filter(id => id !== 'timer' && componentRegistry[id])
-    .map(id => ({ id, Component: componentRegistry[id] }));
+    .map(id => {
+      const definition = COMPONENT_DEFINITIONS.find(def => def.id === id);
+      return {
+        id,
+        Component: componentRegistry[id],
+        renderPriority: definition?.renderPriority ?? 100, // Default to a low priority if no definition
+      };
+    })
+    .filter(compInfo => compInfo.id !== 'timer' && compInfo.Component) // Ensure component exists and is not timer
+    .sort((a, b) => a.renderPriority - b.renderPriority); // Sort by renderPriority
 
   return (
     <div 
@@ -73,7 +83,7 @@ const MeetingScreen: React.FC = () => {
           height: '100%',     
           overflowY: 'auto',  
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(max(300px, calc((100% - 2 * 1rem) / 3)), 1fr))', // Updated for max 3 columns
           gap: '1rem',
           alignContent: 'start', 
         }}

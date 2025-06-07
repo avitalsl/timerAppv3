@@ -1,9 +1,12 @@
 import React, { createContext, useReducer, useContext, type ReactNode, type Dispatch } from 'react';
+import { ComponentType } from '../types/layoutTypes'; // Added import for ComponentType
 
 // --- Interfaces ---
 export interface KickoffSetting {
   mode: 'getDownToBusiness' | 'storyTime';
   storyOption: 'random' | 'manual' | null;
+  storyDurationSeconds: number | undefined;
+  storytellerName: string;
 }
 
 export interface Participant {
@@ -66,7 +69,8 @@ export type MeetingAction =
   | { type: 'NEXT_PARTICIPANT' }
   | { type: 'ADD_TIME' }
   | { type: 'SET_TIMER_STATUS'; payload: MeetingState['timerStatus'] }
-  | { type: 'UPDATE_SELECTED_COMPONENTS'; payload: string[] };
+  | { type: 'UPDATE_SELECTED_COMPONENTS'; payload: string[] }
+  | { type: 'REMOVE_COMPONENT_FROM_GRID'; payload: string };
 
 // --- Reducer --- 
 const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingState => {
@@ -96,6 +100,12 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
 
       const activeParticipants = participants.filter(p => p.included);
 
+      // Conditionally add StoryWidget if mode is 'storyTime'
+      let finalSelectedGridComponentIds = [...selectedGridComponentIds]; // Use the one from action.payload
+      if (kickoffSettings?.mode === 'storyTime' && !finalSelectedGridComponentIds.includes(ComponentType.STORY)) {
+        finalSelectedGridComponentIds.push(ComponentType.STORY);
+      }
+
       return {
         ...initialState, // Reset to initial state first
         isMeetingActive: true,
@@ -107,7 +117,7 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
                                  storedTimerConfig.extensionAmountMinutes ? storedTimerConfig.extensionAmountMinutes * 60 : undefined,
         },
         kickoffSettings: kickoffSettings,
-        selectedGridComponentIds: selectedGridComponentIds,
+        selectedGridComponentIds: finalSelectedGridComponentIds, // Use the potentially modified list
         participants: activeParticipants,
         currentParticipantIndex: mode === 'per-participant' && activeParticipants.length > 0 ? 0 : null,
         currentTimeSeconds: durationSeconds,
@@ -135,7 +145,7 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
         isMeetingActive: true,
         timerConfig: newTimerConfig,
         kickoffSettings: kickoffSettings,
-        selectedGridComponentIds: selectedGridComponentIds,
+        selectedGridComponentIds: finalSelectedGridComponentIds, // Ensure this uses the modified list here too
         participants: activeParticipants,
         currentParticipantIndex: mode === 'per-participant' && activeParticipants.length > 0 ? 0 : null,
         currentTimeSeconds: durationSeconds,
@@ -195,6 +205,13 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
       return {
         ...state,
         selectedGridComponentIds: action.payload
+      };
+    case 'REMOVE_COMPONENT_FROM_GRID':
+      return {
+        ...state,
+        selectedGridComponentIds: state.selectedGridComponentIds.filter(
+          id => id !== action.payload
+        ),
       };
     default:
       return state;

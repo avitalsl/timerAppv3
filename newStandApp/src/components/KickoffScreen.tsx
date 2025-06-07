@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { kickoffSettingsStorageService } from '../services/kickoffSettingsStorageService';
-import type { KickoffSetting, Participant } from '../contexts/MeetingContext';
-import { participantsStorageService } from '../services/participantsStorageService';
+import type { KickoffSetting } from '../contexts/MeetingContext';
 
 /**
  * KickoffScreen - Allows users to define how the meeting should start.
@@ -23,25 +22,6 @@ const KickoffScreen: React.FC = () => {
   const [storytellerName, setStorytellerName] = useState<string>(
     initialSettings.storytellerName || '' // Initialize from storage or default to empty string
   );
-
-  // Fetch participants
-  const allParticipants = useMemo(() => participantsStorageService.getParticipants(), []);
-  const includedParticipants = useMemo(() => allParticipants.filter(p => p.included), [allParticipants]);
-
-  // Effect to manage storytellerName when in manual mode or when includedParticipants change
-  useEffect(() => {
-    if (kickoffMode === 'storyTime' && storyOption === 'manual') {
-      if (includedParticipants.length > 0) {
-        const currentStorytellerIsValid = includedParticipants.some(p => p.name === storytellerName);
-        if (!storytellerName || !currentStorytellerIsValid) {
-          setStorytellerName(includedParticipants[0].name); // Default to the first included participant
-        }
-      } else {
-        setStorytellerName(''); // No participants to choose from
-      }
-    }
-    // If not in manual story mode, storytellerName is cleared by other handlers or useEffect
-  }, [kickoffMode, storyOption, includedParticipants, storytellerName]); // Added storytellerName to prevent potential stale closure issues if it was set by user then includedParticipants changed
 
   // Save settings to storage service when they change
   useEffect(() => {
@@ -102,17 +82,8 @@ const KickoffScreen: React.FC = () => {
     setStoryOption(newStoryOption);
     if (newStoryOption === 'random') {
       setStorytellerName(''); // Clear storyteller name if random is selected
-    } else if (newStoryOption === 'manual') {
-      // When switching to manual, set storyteller if not already set or invalid
-      if (includedParticipants.length > 0) {
-        const currentStorytellerIsValid = includedParticipants.some(p => p.name === storytellerName);
-        if (!storytellerName || !currentStorytellerIsValid) {
-          setStorytellerName(includedParticipants[0].name);
-        }
-      } else {
-        setStorytellerName('');
-      }
     }
+    // If 'manual' is selected, user will input name, no need to clear here
   };
 
   const handleStoryDurationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,7 +92,7 @@ const KickoffScreen: React.FC = () => {
   };
 
   // New handler for storyteller name change
-  const handleStorytellerNameChange = (event: React.ChangeEvent<HTMLSelectElement>) => { 
+  const handleStorytellerNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setStorytellerName(event.target.value);
     // Saving is now handled by the main useEffect
   };
@@ -221,26 +192,16 @@ const KickoffScreen: React.FC = () => {
                 <label htmlFor="storytellerNameInput" className="block text-sm font-medium text-gray-700 mb-1">
                   Storyteller
                 </label>
-                {includedParticipants.length > 0 ? (
-                  <select
-                    id="storytellerNameInput"
-                    name="storytellerName"
-                    value={storytellerName}
-                    onChange={handleStorytellerNameChange}
-                    className="mt-1 block w-48 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    data-testid="story-teller-select" 
-                  >
-                    {includedParticipants.map(participant => (
-                      <option key={participant.name} value={participant.name}>
-                        {participant.name}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <p className="mt-1 text-sm text-gray-500" data-testid="no-participants-message">
-                    No participants available to choose from.
-                  </p>
-                )}
+                <input
+                  type="text"
+                  id="storytellerNameInput"
+                  name="storytellerName"
+                  value={storytellerName}
+                  onChange={handleStorytellerNameChange}
+                  className="mt-1 block w-48 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  data-testid="story-teller-name-input" 
+                  placeholder="Enter storyteller's name"
+                />
               </div>
             )}
           </div>
