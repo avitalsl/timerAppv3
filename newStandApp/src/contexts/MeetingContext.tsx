@@ -124,35 +124,6 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
         timerStatus: 'running',
         participantListVisibilityMode: participantListVisibilityMode || 'all_visible', // Fallback just in case
       };
-      let calculatedExtensionSeconds: number | undefined = undefined;
-      if (storedTimerConfig && storedTimerConfig.extensionAmountSeconds !== undefined) {
-        calculatedExtensionSeconds = storedTimerConfig.extensionAmountSeconds;
-      } else if (storedTimerConfig && storedTimerConfig.extensionAmountMinutes !== undefined) {
-        // If extensionAmountMinutes is not undefined, its type (number | undefined) narrows to number.
-        // Asserting as number due to persistent linter issue with type narrowing.
-        calculatedExtensionSeconds = (storedTimerConfig.extensionAmountMinutes as number) * 60;
-      }
-
-      const newTimerConfig: MeetingTimerConfig = {
-        mode: mode,
-        durationSeconds: durationSeconds,
-        allowExtension: storedTimerConfig.allowExtension,
-        extensionAmountSeconds: calculatedExtensionSeconds,
-      };
-
-      const newState: MeetingState = {
-        ...initialState,
-        isMeetingActive: true,
-        timerConfig: newTimerConfig,
-        kickoffSettings: kickoffSettings,
-        selectedGridComponentIds: finalSelectedGridComponentIds, // Ensure this uses the modified list here too
-        participants: activeParticipants,
-        currentParticipantIndex: mode === 'per-participant' && activeParticipants.length > 0 ? 0 : null,
-        currentTimeSeconds: durationSeconds,
-        timerStatus: 'running', // This is a valid MeetingState['timerStatus']
-        participantListVisibilityMode: participantListVisibilityMode || 'all_visible',
-      };
-      return newState;
     case 'END_MEETING':
       console.log('[MeetingContext] END_MEETING');
       return { ...initialState, selectedGridComponentIds: [] }; // Reset to initial state, ensuring selectedGridComponentIds is also reset

@@ -12,7 +12,7 @@ const KickoffScreen: React.FC = () => {
     const settings = kickoffSettingsStorageService.getKickoffSettings();
     return settings;
   }, []);
-
+  
   // Initialize state with values from storage service
   const [kickoffMode, setKickoffMode] = useState<'getDownToBusiness' | 'storyTime'>(initialSettings.mode);
   const [storyOption, setStoryOption] = useState<'random' | 'manual' | null>(initialSettings.storyOption);

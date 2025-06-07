@@ -93,15 +93,6 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     defaultSize: { w: 4, h: 3 },
     minSize: { w: 4, h: 2 },
     renderPriority: 10 // Default priority for existing components
-  },
-  {
-    id: ComponentType.STORY, // 'storyWidget'
-    type: ComponentType.STORY,
-    label: 'Story Time',
-    defaultSize: { w: 12, h: 2 }, // Example size, can be adjusted. Full width likely.
-    minSize: { w: 8, h: 1 },
-    lifecycle: 'temporary',
-    renderPriority: 1 // High priority to appear at the top
   }
 ];
 
