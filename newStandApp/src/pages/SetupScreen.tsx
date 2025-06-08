@@ -48,7 +48,16 @@ const SetupScreen = () => {
   // Initialize selected components based on loaded config
   useMemo(() => {
     if (isLoaded && visibilityConfig) {
-      setSelectedComponents(visibilityConfig.visibleComponents)
+      const userSelectableComponentIds = new Set(
+        COMPONENT_DEFINITIONS
+          .filter(def => def.isUserSelectableInSetup !== false)
+          .map(def => def.id)
+      );
+
+      const filteredVisibleComponents = visibilityConfig.visibleComponents.filter(id => 
+        userSelectableComponentIds.has(id)
+      );
+      setSelectedComponents(filteredVisibleComponents);
     }
   }, [isLoaded, visibilityConfig])
   

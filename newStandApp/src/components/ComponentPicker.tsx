@@ -1,6 +1,7 @@
 import React from 'react';
 import Checkbox from './Checkbox';
 import type { ComponentDefinition } from '../types/layoutTypes';
+
 interface ComponentPickerProps {
   components: ComponentDefinition[];
   selectedComponents: string[];
@@ -20,32 +21,34 @@ const ComponentPicker: React.FC<ComponentPickerProps> = ({
         </h3>
       </div>
       <div className="flex flex-wrap gap-2">
-        {components.map((component) => (
-          <div 
-            key={component.id}
-            className="flex items-center p-1.5 border border-gray-200 rounded-md bg-primary-sandLight"
-            data-testid={`component-picker-item-${component.id}`}
-          >
-            <Checkbox
-  id={`component-${component.id}`}
-  checked={selectedComponents.includes(component.id)}
-  onChange={(e) => onToggleComponent(component.id, e.target.checked)}
-  disabled={component.isRequired}
-  className="h-3.5 w-3.5 text-[#4a9fff] focus:ring-[#4a9fff] border-gray-300 rounded"
-  data-testid={`component-picker-checkbox-${component.id}`}
-/>
-            <label
-              htmlFor={`component-${component.id}`}
-              className="ml-2 text-xs font-medium text-gray-700"
-              data-testid={`component-picker-label-${component.id}`}
+        {components
+          .filter(component => component.isUserSelectableInSetup !== false)
+          .map((component) => (
+            <div 
+              key={component.id}
+              className="flex items-center p-1.5 border border-gray-200 rounded-md bg-primary-sandLight"
+              data-testid={`component-picker-item-${component.id}`}
             >
-              {component.label}
-              {component.isRequired && (
-                <span className="ml-1 text-xs text-gray-500">(Required)</span>
-              )}
-            </label>
-          </div>
-        ))}
+              <Checkbox
+                id={`component-${component.id}`}
+                checked={selectedComponents.includes(component.id)}
+                onChange={(e) => onToggleComponent(component.id, e.target.checked)}
+                disabled={component.isRequired}
+                className="h-3.5 w-3.5 text-[#4a9fff] focus:ring-[#4a9fff] border-gray-300 rounded"
+                data-testid={`component-picker-checkbox-${component.id}`}
+              />
+              <label
+                htmlFor={`component-${component.id}`}
+                className="ml-2 text-xs font-medium text-gray-700"
+                data-testid={`component-picker-label-${component.id}`}
+              >
+                {component.label}
+                {component.isRequired && (
+                  <span className="ml-1 text-xs text-gray-500">(Required)</span>
+                )}
+              </label>
+            </div>
+          ))}
       </div>
     </div>
   );

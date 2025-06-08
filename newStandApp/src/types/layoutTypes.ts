@@ -23,6 +23,7 @@ export interface ComponentDefinition {
   isRequired?: boolean; // Timer will be true
   lifecycle?: 'permanent' | 'temporary'; // Added lifecycle property
   renderPriority?: number; // Added renderPriority, lower means higher priority
+  isUserSelectableInSetup?: boolean; // New property for ComponentPicker visibility
 }
 
 export interface LayoutConfiguration {
@@ -44,7 +45,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     defaultSize: { w: 4, h: 3 },
     minSize: { w: 4, h: 3 },
     isRequired: true,
-    renderPriority: 10 // Default priority for existing components
+    renderPriority: 10, // Default priority for existing components
+    isUserSelectableInSetup: true,
   },
   {
     id: 'participants',
@@ -52,7 +54,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     label: 'Meeting participant list',
     defaultSize: { w: 4, h: 4 },
     minSize: { w: 4, h: 2 },
-    renderPriority: 10 // Default priority for existing components
+    renderPriority: 10, // Default priority for existing components
+    isUserSelectableInSetup: true,
   },
   {
     id: 'links',
@@ -60,7 +63,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     label: 'List of links',
     defaultSize: { w: 4, h: 2 },
     minSize: { w: 4, h: 2 },
-    renderPriority: 10 // Default priority for existing components
+    renderPriority: 10, // Default priority for existing components
+    isUserSelectableInSetup: true,
   },
   {
     id: 'notes',
@@ -68,7 +72,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     label: 'Area for notes',
     defaultSize: { w: 4, h: 4 },
     minSize: { w: 4, h: 2 },
-    renderPriority: 10 // Default priority for existing components
+    renderPriority: 10, // Default priority for existing components
+    isUserSelectableInSetup: true,
   },
   {
     id: 'agenda',
@@ -76,7 +81,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     label: 'Meeting agenda',
     defaultSize: { w: 4, h: 3 },
     minSize: { w: 4, h: 2 },
-    renderPriority: 10 // Default priority for existing components
+    renderPriority: 10, // Default priority for existing components
+    isUserSelectableInSetup: true,
   },
   {
     id: 'sprintGoals',
@@ -84,7 +90,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     label: 'Sprint goals',
     defaultSize: { w: 4, h: 3 },
     minSize: { w: 4, h: 2 },
-    renderPriority: 10 // Default priority for existing components
+    renderPriority: 10, // Default priority for existing components
+    isUserSelectableInSetup: true,
   },
   {
     id: 'checklist',
@@ -92,7 +99,17 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     label: 'Checklist time',
     defaultSize: { w: 4, h: 3 },
     minSize: { w: 4, h: 2 },
-    renderPriority: 10 // Default priority for existing components
+    renderPriority: 10, // Default priority for existing components
+    isUserSelectableInSetup: true,
+  },
+  {
+    id: ComponentType.STORY,
+    type: ComponentType.STORY,
+    label: 'Story Time',
+    defaultSize: { w: 4, h: 4 }, // Example size, adjust if needed
+    minSize: { w: 4, h: 2 },   // Example size, adjust if needed
+    renderPriority: 1, // High priority to be on top
+    isUserSelectableInSetup: false, // Not selectable in ComponentPicker
   }
 ];
 
