@@ -1,7 +1,10 @@
-
 import TopBarMeetingButton from './TopBarMeetingButton'
+import { useCurrentUser } from '../contexts/UserContext';
+import UserAvatar from './UserAvatar';
 
 const Header = () => {
+  const currentUser = useCurrentUser();
+
   return (
     <header 
       className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6"
@@ -14,7 +17,7 @@ const Header = () => {
       </div>
       <div className="flex items-center space-x-4">
         <TopBarMeetingButton data-testid="header-meeting-button" />
-
+        <UserAvatar user={currentUser} />
       </div>
     </header>
   )

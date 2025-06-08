@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { kickoffSettingsStorageService } from '../services/kickoffSettingsStorageService';
 import type { KickoffSetting } from '../contexts/MeetingContext';
+import { useCurrentUser } from '../contexts/UserContext';
 
 /**
  * KickoffScreen - Allows users to define how the meeting should start.
@@ -13,6 +14,9 @@ const KickoffScreen: React.FC = () => {
     return settings;
   }, []);
   
+  const user = useCurrentUser();
+  console.log("👤 משתמש נוכחי:", user);
+
   // Initialize state with values from storage service
   const [kickoffMode, setKickoffMode] = useState<'getDownToBusiness' | 'storyTime'>(initialSettings.mode);
   const [storyOption, setStoryOption] = useState<'random' | 'manual' | null>(initialSettings.storyOption);

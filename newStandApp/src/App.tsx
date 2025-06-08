@@ -13,27 +13,30 @@ import LinksSetup from './pages/LinksSetup'
 import KickoffScreen from './components/KickoffScreen'
 import { MeetingProvider } from './contexts/MeetingContext';
 import { ComponentVisibilityProvider } from './hooks/ComponentVisibilityProvider';
+import { UserProvider } from './contexts/UserContext';
 
 function App() {
   return (
-    <Router>
-      <MeetingProvider>
-        <ComponentVisibilityProvider>
-        <div className="w-full min-h-screen bg-gray-100">
-          <Routes>
-            <Route path="/" element={<MainLayout />}>
-              <Route index element={<SetupScreen />} />
-              <Route path="meeting" element={<TimerSetup />} />
-              <Route path="participants" element={<Participants />} />
-              <Route path="links" element={<LinksSetup />} />
-              <Route path="kickoff" element={<KickoffScreen />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-            </Route>
-          </Routes>
-        </div>
-        </ComponentVisibilityProvider>
-      </MeetingProvider>
-    </Router>
+    <UserProvider>
+      <Router>
+        <MeetingProvider>
+          <ComponentVisibilityProvider>
+          <div className="w-full min-h-screen bg-gray-100">
+            <Routes>
+              <Route path="/" element={<MainLayout />}>
+                <Route index element={<SetupScreen />} />
+                <Route path="meeting" element={<TimerSetup />} />
+                <Route path="participants" element={<Participants />} />
+                <Route path="links" element={<LinksSetup />} />
+                <Route path="kickoff" element={<KickoffScreen />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+              </Route>
+            </Routes>
+          </div>
+          </ComponentVisibilityProvider>
+        </MeetingProvider>
+      </Router>
+    </UserProvider>
   )
 }
 
