@@ -3,12 +3,11 @@ import { Outlet } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
 import MeetingOverlay from '../components/MeetingOverlay'
-import { OverlayProvider } from '../contexts/OverlayContext'
 
 const MainLayout = () => {
   console.log('[MainLayout] Component rendering');
   return (
-    <OverlayProvider>
+    <>
       <div className="flex h-screen w-full" data-testid="layout-main">
         <Sidebar />
         <div className="flex flex-col flex-1 overflow-hidden">
@@ -22,7 +21,7 @@ const MainLayout = () => {
       </div>
       {/* Meeting overlay portal renders outside DOM hierarchy */}
       <MeetingOverlay />
-    </OverlayProvider>
+    </>
   )
 }
 

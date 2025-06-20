@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { setupTestStorage, clearAppStorage } from '../services/tests/mockStorageForTests';
+import { clearAppStorage } from '../services/tests/mockStorageForTests';
 
 // Helper to directly update the MeetingContext state
 async function updateSelectedComponents(page: any, componentIds: string[]): Promise<boolean> {

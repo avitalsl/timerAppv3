@@ -1,10 +1,8 @@
 import { createPortal } from 'react-dom';
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import { useOverlay } from '../contexts/OverlayContext';
+import { useMeeting } from '../contexts/MeetingContext';
 import MeetingScreen from './MeetingScreen';
-// import { DEFAULT_LAYOUT_CONFIG } from '../types/layoutTypes'; // No longer needed
-// import type { LayoutConfiguration } from '../types/layoutTypes'; // No longer needed
 
 /**
  * Meeting Overlay Component
@@ -13,26 +11,23 @@ import MeetingScreen from './MeetingScreen';
  * Uses React Portal to render outside the normal DOM hierarchy
  */
 const MeetingOverlay = () => {
-  const { isOverlayVisible, hideOverlay } = useOverlay();
+  const { state: meetingState, dispatch } = useMeeting();
   console.log('MeetingOverlay rendered!')
 
   // State to hold the main element DOM reference
   const [mainElement, setMainElement] = useState<Element | null>(null);
-  // layoutConfig and isConfigLoaded state are no longer needed as MeetingScreen handles its content.
   
   // Effect to find the main element when the overlay becomes visible
   useEffect(() => {
-    if (isOverlayVisible) {
+    if (meetingState.isMeetingUIVisible) {
       // Find the main element - we'll mount our portal here
       const main = document.querySelector('main');
       setMainElement(main);
-      // Logic for loading layoutConfig from localStorage is removed.
-      // MeetingScreen will manage its own content, initially just showing the Timer.
     }
-  }, [isOverlayVisible]);
+  }, [meetingState.isMeetingUIVisible]);
   
   // Don't render anything if the overlay is not visible or main element not found
-  if (!isOverlayVisible || !mainElement) return null;
+  if (!meetingState.isMeetingUIVisible || !mainElement) return null;
   
   // Use overlay mode for styling
   const inMeetingOverlay = true;
@@ -46,7 +41,7 @@ const MeetingOverlay = () => {
     >
       <div className="absolute top-4 right-4">
         <button
-          onClick={hideOverlay}
+          onClick={() => dispatch({ type: 'END_MEETING' })}
           className="p-2 rounded-full bg-white shadow-md hover:bg-gray-100 transition-colors"
           data-testid="meeting-overlay-close"
           aria-label="Close meeting overlay"

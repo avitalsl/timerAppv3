@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Play } from 'lucide-react';
-import { useOverlay } from '../contexts/OverlayContext';
 import { useMeeting } from '../contexts/MeetingContext';
 import { useComponentVisibility } from '../hooks/useComponentVisibility';
 import { meetingSettingsService } from '../services/meetingSettingsService';
@@ -11,9 +10,8 @@ import { meetingSettingsService } from '../services/meetingSettingsService';
  */
 
 export default function TopBarMeetingButton() {
-  const { showOverlay, isOverlayVisible } = useOverlay();
-  const { dispatch } = useMeeting();
-const { visibleComponents } = useComponentVisibility().visibilityConfig;
+  const { dispatch, state: meetingState } = useMeeting(); // Get state directly here
+  const { visibleComponents } = useComponentVisibility().visibilityConfig;
   const [hasLoggedInitialConfig, setHasLoggedInitialConfig] = useState(false);
 
   const handleClick = () => {
@@ -26,7 +24,7 @@ const { visibleComponents } = useComponentVisibility().visibilityConfig;
       participantListVisibilityMode,
       visibleComponents
     });
-    // Start the meeting in the context
+    // Start the meeting in the context, which will also make the UI visible
     dispatch({
       type: 'START_MEETING',
       payload: {
@@ -38,16 +36,15 @@ const { visibleComponents } = useComponentVisibility().visibilityConfig;
       }
     });
 
-    // Open the overlay
-    showOverlay();
+    // No longer need to call showOverlay() separately
   };
 
   // Get the meeting state directly to avoid excessive context calls
-  const { state: meetingState } = useMeeting();
+  // const { state: meetingState } = useMeeting(); // Already fetched above
   
   useEffect(() => {
-    // Log when meeting starts and overlay is visible, but only once per meeting start
-    if (meetingState.isMeetingActive && meetingState.timerStatus === 'running' && isOverlayVisible && !hasLoggedInitialConfig) {
+    // Log when meeting starts and UI is visible, but only once per meeting start
+    if (meetingState.isMeetingActive && meetingState.timerStatus === 'running' && meetingState.isMeetingUIVisible && !hasLoggedInitialConfig) {
       // Using JSON.parse(JSON.stringify(...)) for a deep copy to ensure the logged object is a snapshot
       if (process.env.NODE_ENV === 'development') {
         console.log('[TopBarMeetingButton] Meeting started with config:', JSON.parse(JSON.stringify({
@@ -59,7 +56,7 @@ const { visibleComponents } = useComponentVisibility().visibilityConfig;
       }
       setHasLoggedInitialConfig(true);
     }
-  }, [meetingState, isOverlayVisible, hasLoggedInitialConfig]);
+  }, [meetingState, hasLoggedInitialConfig]); // Removed isOverlayVisible from dependencies
 
   useEffect(() => {
     // Reset the log flag when the meeting is no longer active, so it can log for the next meeting

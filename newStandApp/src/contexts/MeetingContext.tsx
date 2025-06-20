@@ -37,6 +37,7 @@ interface MeetingTimerConfig {
 // --- State --- 
 export interface MeetingState {
   isMeetingActive: boolean;
+  isMeetingUIVisible: boolean; // Added to manage UI visibility
   timerConfig: MeetingTimerConfig | null;
   kickoffSettings: KickoffSetting | null;
   participants: Participant[]; // Only included participants
@@ -49,6 +50,7 @@ export interface MeetingState {
 
 const initialState: MeetingState = {
   isMeetingActive: false,
+  isMeetingUIVisible: false, // Initialized
   timerConfig: null,
   kickoffSettings: null,
   participants: [],
@@ -109,6 +111,7 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
       return {
         ...initialState, // Reset to initial state first
         isMeetingActive: true,
+        isMeetingUIVisible: true, // Set UI to visible when meeting starts
         timerConfig: {
           mode: mode,
           durationSeconds: durationSeconds,
@@ -126,7 +129,7 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
       };
     case 'END_MEETING':
       console.log('[MeetingContext] END_MEETING');
-      return { ...initialState, selectedGridComponentIds: [] }; // Reset to initial state, ensuring selectedGridComponentIds is also reset
+      return { ...initialState, selectedGridComponentIds: [] }; // Reset to initial state, isMeetingUIVisible will be false
     case 'PAUSE_TIMER':
       if (!state.isMeetingActive || state.timerStatus !== 'running') return state;
       console.log('[MeetingContext] PAUSE_TIMER');
