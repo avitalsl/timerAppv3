@@ -9,13 +9,16 @@ export interface KickoffSetting {
   storytellerName: string;
 }
 
-// Define participant status enum
-export enum ParticipantStatus {
-  PENDING = 'PENDING',   // Not yet spoken
-  ACTIVE = 'ACTIVE',     // Currently speaking
-  FINISHED = 'FINISHED', // Completed their turn
-  SKIPPED = 'SKIPPED'    // Skipped by moderator
-}
+// Define participant status as a string type 
+export type ParticipantStatus = 'PENDING' | 'ACTIVE' | 'FINISHED' | 'SKIPPED';
+
+// Create a const object with the same name to maintain API compatibility
+export const ParticipantStatus = {
+  PENDING: 'PENDING',    // Not yet spoken
+  ACTIVE: 'ACTIVE',      // Currently speaking
+  FINISHED: 'FINISHED',  // Completed their turn
+  SKIPPED: 'SKIPPED',    // Skipped by moderator
+} as const;
 
 // Define time donation interface
 export interface TimeDonation {

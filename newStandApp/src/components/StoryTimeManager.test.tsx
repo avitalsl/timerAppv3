@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import StoryTimeManager from './StoryTimeManager';
-import { useMeeting } from '../contexts/MeetingContext';
+import { useMeeting, ParticipantStatus } from '../contexts/MeetingContext';
 import type { Participant } from '../contexts/MeetingContext';
 
 // Mock dependencies
@@ -14,9 +14,36 @@ const mockUseMeeting = useMeeting as Mock;
 describe('StoryTimeManager', () => {
   // Set up some test participants
   const testParticipants: Participant[] = [
-    { name: 'Alice', included: true },
-    { name: 'Bob', included: true },
-    { name: 'Charlie', included: true },
+    { 
+      id: '1',
+      name: 'Alice', 
+      included: true,
+      allocatedTimeSeconds: 120,
+      remainingTimeSeconds: 120,
+      status: ParticipantStatus.PENDING,
+      receivedDonations: [],
+      hasSpeakerRole: false
+    },
+    { 
+      id: '2',
+      name: 'Bob', 
+      included: true,
+      allocatedTimeSeconds: 120,
+      remainingTimeSeconds: 120,
+      status: ParticipantStatus.PENDING,
+      receivedDonations: [],
+      hasSpeakerRole: false
+    },
+    { 
+      id: '3',
+      name: 'Charlie', 
+      included: true,
+      allocatedTimeSeconds: 120,
+      remainingTimeSeconds: 120,
+      status: ParticipantStatus.PENDING,
+      receivedDonations: [],
+      hasSpeakerRole: false
+    },
   ];
 
   beforeEach(() => {

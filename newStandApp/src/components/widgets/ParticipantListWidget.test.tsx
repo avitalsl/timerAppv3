@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import ParticipantListWidget from './ParticipantListWidget';
 import { useMeeting } from '../../contexts/MeetingContext';
 import type { Participant } from '../../contexts/MeetingContext';
+import { ParticipantStatus } from '../../contexts/MeetingContext';
 
 // Mock the Lucide icon
 vi.mock('lucide-react', () => ({
@@ -18,9 +19,36 @@ const mockUseMeeting = useMeeting as Mock;
 
 describe('ParticipantListWidget', () => {
   const mockParticipants: Participant[] = [
-    { name: 'Alice', included: true },
-    { name: 'Bob', included: true },
-    { name: 'Charlie', included: true },
+    { 
+      id: '1',
+      name: 'Alice', 
+      included: true,
+      allocatedTimeSeconds: 120,
+      remainingTimeSeconds: 120,
+      status: ParticipantStatus.PENDING,
+      receivedDonations: [],
+      hasSpeakerRole: false
+    },
+    { 
+      id: '2',
+      name: 'Bob', 
+      included: true,
+      allocatedTimeSeconds: 120,
+      remainingTimeSeconds: 120,
+      status: ParticipantStatus.PENDING,
+      receivedDonations: [],
+      hasSpeakerRole: false
+    },
+    { 
+      id: '3',
+      name: 'Charlie', 
+      included: true,
+      allocatedTimeSeconds: 120,
+      remainingTimeSeconds: 120,
+      status: ParticipantStatus.PENDING,
+      receivedDonations: [],
+      hasSpeakerRole: false
+    },
   ];
 
   beforeEach(() => {
