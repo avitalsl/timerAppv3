@@ -1,5 +1,6 @@
 import React, { createContext, useReducer, useContext, type ReactNode, type Dispatch } from 'react';
 import { ComponentType } from '../types/layoutTypes'; // Added import for ComponentType
+import { meetingTimerService } from '../services/meetingTimerService'; // Import the service
 
 // --- Interfaces ---
 export interface KickoffSetting {
@@ -22,8 +23,9 @@ export const ParticipantStatus = {
 
 // Define time donation interface
 export interface TimeDonation {
-  donorId: string;       // ID of the participant giving time
-  recipientId: string;   // ID of the participant receiving time
+  id: string;           // Unique identifier for the donation
+  fromParticipantId: string;  // ID of the participant giving time (renamed from donorId)
+  toParticipantId: string;    // ID of the participant receiving time (renamed from recipientId)
   amountSeconds: number; // Amount of time donated in seconds
   timestamp: number;     // When the donation was made
 }
@@ -32,13 +34,16 @@ export interface Participant {
   id: string;            // Unique identifier for the participant
   name: string;
   included: boolean;
-  // New fields for timer donation feature
+  // Time management fields
   allocatedTimeSeconds: number;    // Initially allocated time
   remainingTimeSeconds: number;    // Current remaining time
+  usedTimeSeconds: number;         // Total time used so far
+  // Donation tracking
+  donatedTimeSeconds: number;      // Total time donated to others
+  receivedTimeSeconds: number;     // Total time received from others
+  // Status fields
   status: ParticipantStatus;       // Current speaking status
-  receivedDonations: TimeDonation[]; // Track donations received
-  hasSpeakerRole: boolean;         // Whether this participant has a speaker role
-  // Add other participant-specific fields if needed in the future
+  hasSpeakerRole: boolean;         // Whether this participant has the speaker role
 }
 
 // Raw config loaded from localStorage (TimerSetup.tsx)
@@ -72,6 +77,11 @@ export interface MeetingState {
   timerStatus: 'idle' | 'running' | 'paused' | 'finished' | 'participant_transition';
   selectedGridComponentIds: string[];
   participantListVisibilityMode: 'all_visible' | 'focus_speaker';
+  // New fields for time donation feature
+  currentSpeakerId: string | null; // ID of the current speaker (more robust than index)
+  timeDonations: TimeDonation[];   // Track all donations in the meeting
+  speakerQueue: string[];          // IDs of participants in the queue
+  meetingStatus: 'NotStarted' | 'InProgress' | 'Finished'; // Overall meeting status
 }
 
 const initialState: MeetingState = {
@@ -85,6 +95,11 @@ const initialState: MeetingState = {
   timerStatus: 'idle',
   selectedGridComponentIds: [],
   participantListVisibilityMode: 'all_visible',
+  // Initialize new fields
+  currentSpeakerId: null,
+  timeDonations: [],
+  speakerQueue: [],
+  meetingStatus: 'NotStarted'
 };
 
 // --- Actions --- 
@@ -93,8 +108,12 @@ export type MeetingAction =
   | { type: 'END_MEETING' }
   | { type: 'PAUSE_TIMER' }
   | { type: 'RESUME_TIMER' }
-  | { type: 'TICK' }
+  | { type: 'TICK'; payload?: { elapsedSeconds: number } } // Optional payload for elapsed time
   | { type: 'NEXT_PARTICIPANT' }
+  | { type: 'SET_NEXT_SPEAKER'; payload: { participantId: string } } // New action to set a specific speaker
+  | { type: 'SKIP_PARTICIPANT'; payload: { participantId: string } } // New action to skip a participant
+  | { type: 'DONATE_TIME'; payload: { fromParticipantId: string; toParticipantId: string; amountSeconds: number } } // New action for time donation
+  | { type: 'CUSTOMIZE_PARTICIPANT_TIME'; payload: { participantId: string; timeSeconds: number } } // New action to customize participant time
   | { type: 'ADD_TIME' }
   | { type: 'SET_TIMER_STATUS'; payload: MeetingState['timerStatus'] }
   | { type: 'UPDATE_SELECTED_COMPONENTS'; payload: string[] }
@@ -152,11 +171,16 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
         timerStatus: 'running',
         selectedGridComponentIds: finalSelectedGridComponentIds, // Use the potentially modified list
         participantListVisibilityMode: participantListVisibilityMode ?? 'all_visible',
+        // Initialize new fields
+        currentSpeakerId: null,
+        timeDonations: [],
+        speakerQueue: [],
+        meetingStatus: 'InProgress'
       };
     }
     case 'END_MEETING':
       console.log('[MeetingContext] END_MEETING');
-      return { ...initialState, selectedGridComponentIds: [] }; // Reset to initial state, isMeetingUIVisible will be false
+      return { ...initialState, selectedGridComponentIds: [], meetingStatus: 'Finished' }; // Reset to initial state, isMeetingUIVisible will be false
     case 'PAUSE_TIMER':
       if (!state.isMeetingActive || state.timerStatus !== 'running') return state;
       console.log('[MeetingContext] PAUSE_TIMER');
@@ -166,10 +190,9 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
       console.log('[MeetingContext] RESUME_TIMER');
       return { ...state, timerStatus: 'running' };
     case 'TICK':
-      // This will be driven by useMeetingTimer hook
-      // console.log('[MeetingContext] TICK');
-      if (!state.isMeetingActive || state.timerStatus !== 'running' || state.currentTimeSeconds <= 0) return state;
-      return { ...state, currentTimeSeconds: state.currentTimeSeconds - 1 };
+      // Use the processTick function from the service
+      const elapsedSeconds = action.payload?.elapsedSeconds ?? 1;
+      return meetingTimerService.processTick(state, elapsedSeconds);
     case 'NEXT_PARTICIPANT':
       // Logic for 'per-participant' mode, driven by useMeetingTimer or TimerWidget
       console.log('[MeetingContext] NEXT_PARTICIPANT');
@@ -177,20 +200,67 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
         const nextIndex = state.currentParticipantIndex + 1;
         if (nextIndex < state.participants.length) {
           console.log('[MeetingContext] NEXT_PARTICIPANT: Resetting currentTimeSeconds to', state.timerConfig?.durationSeconds, 'for participant index', nextIndex);
+          // Set the current speaker ID as well for the new participant
+          const nextParticipant = state.participants[nextIndex];
           return {
             ...state,
             currentParticipantIndex: nextIndex,
+            currentSpeakerId: nextParticipant.id,
             currentTimeSeconds: state.timerConfig?.durationSeconds, // Reset time for next participant
             timerStatus: 'running',
           };
         } else {
           // Last participant finished
-          return { ...state, timerStatus: 'finished', isMeetingActive: false }; // Or a specific 'all_participants_finished' status
+          return { 
+            ...state, 
+            timerStatus: 'finished', 
+            isMeetingActive: false, 
+            meetingStatus: 'Finished'
+          };
         }
       }
       return state;
-    case 'SET_TIMER_STATUS':
-      return { ...state, timerStatus: action.payload };
+    case 'SET_NEXT_SPEAKER':
+      // Use the service to get speaker by ID rather than index
+      return {
+        ...state, 
+        currentSpeakerId: action.payload.participantId,
+        // Update the speaker queue
+        speakerQueue: [
+          ...state.speakerQueue.filter(id => id !== action.payload.participantId),
+          action.payload.participantId
+        ]
+      };
+    case 'SKIP_PARTICIPANT':
+      // Use the skipParticipant function from the service
+      return meetingTimerService.skipParticipant(state, action.payload.participantId);
+    case 'DONATE_TIME':
+      // Use the donateTime function from the service
+      // Since donateTime now returns the complete updated state or original state on failure
+      return meetingTimerService.donateTime(
+        state,
+        action.payload.fromParticipantId,
+        action.payload.toParticipantId,
+        action.payload.amountSeconds
+      );
+    case 'CUSTOMIZE_PARTICIPANT_TIME':
+      // Update the participant's time
+      const participantId = action.payload.participantId;
+      const participantIndex = state.participants.findIndex(p => p.id === participantId);
+      if (participantIndex !== -1) {
+        // Create a copy of the participants array and update the specific participant
+        const updatedParticipants = [...state.participants];
+        updatedParticipants[participantIndex] = {
+          ...updatedParticipants[participantIndex],
+          allocatedTimeSeconds: action.payload.timeSeconds,
+          remainingTimeSeconds: action.payload.timeSeconds
+        };
+        return {
+          ...state,
+          participants: updatedParticipants
+        };
+      }
+      return state;
     case 'ADD_TIME':
       // Only add time if the meeting is active and the timer config allows extension
       if (!state.isMeetingActive || !state.timerConfig?.allowExtension || !state.timerConfig?.extensionAmountSeconds) {
@@ -201,6 +271,8 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
         ...state,
         currentTimeSeconds: state.currentTimeSeconds + state.timerConfig.extensionAmountSeconds
       };
+    case 'SET_TIMER_STATUS':
+      return { ...state, timerStatus: action.payload };
     case 'UPDATE_SELECTED_COMPONENTS':
       console.log('[MeetingContext] UPDATE_SELECTED_COMPONENTS:', action.payload);
       return {

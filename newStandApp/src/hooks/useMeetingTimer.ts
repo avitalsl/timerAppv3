@@ -33,7 +33,7 @@ export const useMeetingTimer = () => {
       // Start a new interval
       intervalRef.current = setInterval(() => {
         if (currentTimeSeconds > 0) {
-          dispatch({ type: 'TICK' });
+          dispatch({ type: 'TICK', payload: { elapsedSeconds: 1 } });
         } else {
           // Time has reached 0
           clearTimerInterval(); // Stop the current timer before transitioning

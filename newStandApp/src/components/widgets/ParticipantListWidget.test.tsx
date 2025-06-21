@@ -25,8 +25,10 @@ describe('ParticipantListWidget', () => {
       included: true,
       allocatedTimeSeconds: 120,
       remainingTimeSeconds: 120,
+      usedTimeSeconds: 0,
+      donatedTimeSeconds: 0,
+      receivedTimeSeconds: 0,
       status: ParticipantStatus.PENDING,
-      receivedDonations: [],
       hasSpeakerRole: false
     },
     { 
@@ -35,8 +37,10 @@ describe('ParticipantListWidget', () => {
       included: true,
       allocatedTimeSeconds: 120,
       remainingTimeSeconds: 120,
+      usedTimeSeconds: 0,
+      donatedTimeSeconds: 0,
+      receivedTimeSeconds: 0,
       status: ParticipantStatus.PENDING,
-      receivedDonations: [],
       hasSpeakerRole: false
     },
     { 
@@ -45,8 +49,10 @@ describe('ParticipantListWidget', () => {
       included: true,
       allocatedTimeSeconds: 120,
       remainingTimeSeconds: 120,
+      usedTimeSeconds: 0,
+      donatedTimeSeconds: 0,
+      receivedTimeSeconds: 0,
       status: ParticipantStatus.PENDING,
-      receivedDonations: [],
       hasSpeakerRole: false
     },
   ];
