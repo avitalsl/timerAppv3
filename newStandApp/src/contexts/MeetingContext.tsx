@@ -27,7 +27,7 @@ export interface StoredTimerConfig {
 }
 
 // Processed config for use in context
-interface MeetingTimerConfig {
+export interface MeetingTimerConfig {
   mode: 'fixed' | 'per-participant';
   durationSeconds: number; // Either total or per participant
   allowExtension: boolean;
@@ -77,7 +77,7 @@ export type MeetingAction =
 // --- Reducer --- 
 const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingState => {
   switch (action.type) {
-    case 'START_MEETING':
+    case 'START_MEETING': {
       // Debug: Log the full payload and the participantListVisibilityMode
       console.log('[DEBUG] START_MEETING payload:', action.payload);
       console.log('[DEBUG] participantListVisibilityMode:', action.payload.participantListVisibilityMode);
@@ -103,7 +103,7 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
       const activeParticipants = participants.filter(p => p.included);
 
       // Conditionally add StoryWidget if mode is 'storyTime'
-      let finalSelectedGridComponentIds = [...selectedGridComponentIds]; // Use the one from action.payload
+      const finalSelectedGridComponentIds = [...selectedGridComponentIds]; // Use the one from action.payload
       if (kickoffSettings?.mode === 'storyTime' && !finalSelectedGridComponentIds.includes(ComponentType.STORY)) {
         finalSelectedGridComponentIds.push(ComponentType.STORY);
       }
@@ -120,13 +120,14 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
                                  storedTimerConfig.extensionAmountMinutes ? storedTimerConfig.extensionAmountMinutes * 60 : undefined,
         },
         kickoffSettings: kickoffSettings,
-        selectedGridComponentIds: finalSelectedGridComponentIds, // Use the potentially modified list
         participants: activeParticipants,
         currentParticipantIndex: mode === 'per-participant' && activeParticipants.length > 0 ? 0 : null,
         currentTimeSeconds: durationSeconds,
         timerStatus: 'running',
-        participantListVisibilityMode: participantListVisibilityMode || 'all_visible', // Fallback just in case
+        selectedGridComponentIds: finalSelectedGridComponentIds, // Use the potentially modified list
+        participantListVisibilityMode: participantListVisibilityMode ?? 'all_visible',
       };
+    }
     case 'END_MEETING':
       console.log('[MeetingContext] END_MEETING');
       return { ...initialState, selectedGridComponentIds: [] }; // Reset to initial state, isMeetingUIVisible will be false
