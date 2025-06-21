@@ -9,9 +9,32 @@ export interface KickoffSetting {
   storytellerName: string;
 }
 
+// Define participant status enum
+export enum ParticipantStatus {
+  PENDING = 'PENDING',   // Not yet spoken
+  ACTIVE = 'ACTIVE',     // Currently speaking
+  FINISHED = 'FINISHED', // Completed their turn
+  SKIPPED = 'SKIPPED'    // Skipped by moderator
+}
+
+// Define time donation interface
+export interface TimeDonation {
+  donorId: string;       // ID of the participant giving time
+  recipientId: string;   // ID of the participant receiving time
+  amountSeconds: number; // Amount of time donated in seconds
+  timestamp: number;     // When the donation was made
+}
+
 export interface Participant {
+  id: string;            // Unique identifier for the participant
   name: string;
   included: boolean;
+  // New fields for timer donation feature
+  allocatedTimeSeconds: number;    // Initially allocated time
+  remainingTimeSeconds: number;    // Current remaining time
+  status: ParticipantStatus;       // Current speaking status
+  receivedDonations: TimeDonation[]; // Track donations received
+  hasSpeakerRole: boolean;         // Whether this participant has a speaker role
   // Add other participant-specific fields if needed in the future
 }
 
