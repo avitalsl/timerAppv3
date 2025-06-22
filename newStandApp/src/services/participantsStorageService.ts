@@ -1,5 +1,7 @@
 import { storageService } from './storageService';
 import type { Participant } from '../contexts/MeetingContext';
+import { ParticipantStatus } from '../contexts/MeetingContext';
+import { v4 as uuidv4 } from 'uuid';  
 
 const PARTICIPANTS_KEY = 'participantsList';
 
@@ -25,8 +27,16 @@ export const participantsStorageService = {
           return Array.isArray(value) && 
                  value.every(item => 
                    typeof item === 'object' && 
+                   'id' in item &&
                    'name' in item && 
-                   'included' in item
+                   'included' in item &&
+                   'allocatedTimeSeconds' in item &&
+                   'remainingTimeSeconds' in item &&
+                   'usedTimeSeconds' in item &&
+                   'donatedTimeSeconds' in item &&
+                   'receivedTimeSeconds' in item &&
+                   'status' in item &&
+                   'hasSpeakerRole' in item
                  );
         },
         migrate: (legacyData: any): Participant[] => {
@@ -35,11 +45,21 @@ export const participantsStorageService = {
             return legacyData.map(item => {
               // Ensure each item has the required structure
               const participant: Participant = {
+                id: item.id || uuidv4(), 
                 name: typeof item.name === 'string' ? item.name : '',
-                included: typeof item.included === 'boolean' ? item.included : true
+                included: typeof item.included === 'boolean' ? item.included : true,
+                // Initialize time properties to ensure they are never undefined
+                allocatedTimeSeconds: typeof item.allocatedTimeSeconds === 'number' ? item.allocatedTimeSeconds : 0,
+                remainingTimeSeconds: typeof item.remainingTimeSeconds === 'number' ? item.remainingTimeSeconds : 0,
+                usedTimeSeconds: typeof item.usedTimeSeconds === 'number' ? item.usedTimeSeconds : 0,
+                donatedTimeSeconds: typeof item.donatedTimeSeconds === 'number' ? item.donatedTimeSeconds : 0,
+                receivedTimeSeconds: typeof item.receivedTimeSeconds === 'number' ? item.receivedTimeSeconds : 0,
+                // Initialize status fields
+                status: item.status !== undefined ? item.status : ParticipantStatus.PENDING,
+                hasSpeakerRole: typeof item.hasSpeakerRole === 'boolean' ? item.hasSpeakerRole : false
               };
               return participant;
-            }).filter(p => p.name); // Filter out participants with empty names
+            }).filter(p => p.name); 
           }
           return DEFAULT_PARTICIPANTS;
         }
