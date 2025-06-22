@@ -11,9 +11,13 @@ vi.mock('lucide-react', () => ({
 }));
 
 // Mock useMeeting hook
-vi.mock('../../contexts/MeetingContext', () => ({
-  useMeeting: vi.fn(),
-}));
+vi.mock('../../contexts/MeetingContext', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../contexts/MeetingContext')>();
+  return {
+    ...actual,
+    useMeeting: vi.fn(),
+  };
+});
 
 const mockUseMeeting = useMeeting as Mock;
 

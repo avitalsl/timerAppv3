@@ -5,9 +5,13 @@ import { useMeeting, ParticipantStatus } from '../contexts/MeetingContext';
 import type { Participant } from '../contexts/MeetingContext';
 
 // Mock dependencies
-vi.mock('../contexts/MeetingContext', () => ({
-  useMeeting: vi.fn(),
-}));
+vi.mock('../contexts/MeetingContext', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../contexts/MeetingContext')>();
+  return {
+    ...actual,
+    useMeeting: vi.fn(),
+  };
+});
 
 const mockUseMeeting = useMeeting as Mock;
 

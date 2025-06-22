@@ -212,16 +212,31 @@ export function skipParticipant(state: MeetingState, participantId: string): Mee
 }
 
 /**
- * Process time tick for the current speaker
- * Updates the speaker's remaining time and used time
+ * Process time tick for the current speaker or fixed-mode timer
+ * Updates the speaker's remaining time and used time or just decrements the fixed timer
  * Returns updated state and handles automatic transitions
  */
 export function processTick(state: MeetingState, elapsedSeconds: number = 1): MeetingState {
-  // If meeting isn't active or there's no current speaker, return original state
-  if (!state.isMeetingActive || !state.currentSpeakerId || state.timerStatus !== 'running') {
+  // If meeting isn't active or timer isn't running, return original state
+  if (!state.isMeetingActive || state.timerStatus !== 'running') {
     return state;
   }
   
+  // Handle fixed-mode timer (no current speaker)
+  if (state.timerConfig?.mode === 'fixed' || !state.currentSpeakerId) {
+    // Simply decrement the timer
+    const newTimeSeconds = Math.max(0, state.currentTimeSeconds - elapsedSeconds);
+    
+    // Return updated state with new time
+    return {
+      ...state,
+      currentTimeSeconds: newTimeSeconds,
+      // If time is up, set timer status to finished
+      timerStatus: newTimeSeconds <= 0 ? 'finished' : state.timerStatus
+    };
+  }
+  
+  // Handle per-participant mode (with current speaker)
   const currentSpeakerIndex = state.participants.findIndex(p => p.id === state.currentSpeakerId);
   
   // If speaker not found, return original state
