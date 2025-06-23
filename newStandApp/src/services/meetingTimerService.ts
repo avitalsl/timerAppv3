@@ -31,6 +31,8 @@ export function canDonateTime(participant: Participant): { canDonate: boolean; m
   }
   
   if (participant.status === ParticipantStatus.FINISHED || participant.status === ParticipantStatus.SKIPPED) {
+    // For FINISHED or SKIPPED participants, they can donate their remaining time
+    // which is calculated as: allocatedTimeSeconds + receivedTimeSeconds - donatedTimeSeconds - usedTimeSeconds
     return { canDonate: true, maxAmount: calculateRemainingTime(participant) };
   }
   
@@ -160,12 +162,16 @@ export function moveToNextParticipant(state: MeetingState): MeetingState {
       : p
   );
   
+  // Remove the participant from the speaker queue but keep others
+  const updatedQueue = newState.speakerQueue.filter(id => id !== nextPendingParticipant.id);
+  
   return {
     ...newState,
     participants: updatedParticipants,
     currentSpeakerId: nextPendingParticipant.id,
     timerStatus: 'running',
-    currentTimeSeconds: calculateTotalAvailableTime(nextPendingParticipant)
+    currentTimeSeconds: calculateTotalAvailableTime(nextPendingParticipant),
+    speakerQueue: updatedQueue
   };
 }
 
@@ -199,7 +205,18 @@ export function skipParticipant(state: MeetingState, participantId: string): Mee
 
   // If we skipped the current speaker, move to the next participant
   if (wasCurrentSpeaker) {
-    return moveToNextParticipant(updatedState);
+    // When skipping the current speaker, we need to mark them as FINISHED
+    // to maintain consistency with the moveToNextParticipant function's behavior
+    const updatedParticipantsWithFinished = updatedParticipants.map(p => 
+      p.id === participantId 
+        ? { ...p, status: ParticipantStatus.FINISHED, hasSpeakerRole: false } 
+        : p
+    );
+    
+    return moveToNextParticipant({
+      ...updatedState,
+      participants: updatedParticipantsWithFinished
+    });
   }
   
   // Otherwise, just remove from queue if present
@@ -212,16 +229,31 @@ export function skipParticipant(state: MeetingState, participantId: string): Mee
 }
 
 /**
- * Process time tick for the current speaker
- * Updates the speaker's remaining time and used time
+ * Process time tick for the current speaker or fixed-mode timer
+ * Updates the speaker's remaining time and used time or just decrements the fixed timer
  * Returns updated state and handles automatic transitions
  */
 export function processTick(state: MeetingState, elapsedSeconds: number = 1): MeetingState {
-  // If meeting isn't active or there's no current speaker, return original state
-  if (!state.isMeetingActive || !state.currentSpeakerId || state.timerStatus !== 'running') {
+  // If meeting isn't active or timer isn't running, return original state
+  if (!state.isMeetingActive || state.timerStatus !== 'running') {
     return state;
   }
   
+  // Handle fixed-mode timer (no current speaker)
+  if (state.timerConfig?.mode === 'fixed' || !state.currentSpeakerId) {
+    // Simply decrement the timer
+    const newTimeSeconds = Math.max(0, state.currentTimeSeconds - elapsedSeconds);
+    
+    // Return updated state with new time
+    return {
+      ...state,
+      currentTimeSeconds: newTimeSeconds,
+      // If time is up, set timer status to finished
+      timerStatus: newTimeSeconds <= 0 ? 'finished' : state.timerStatus
+    };
+  }
+  
+  // Handle per-participant mode (with current speaker)
   const currentSpeakerIndex = state.participants.findIndex(p => p.id === state.currentSpeakerId);
   
   // If speaker not found, return original state

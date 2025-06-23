@@ -1,13 +1,18 @@
 import React from 'react';
-import { User, Gift, SkipForward } from 'lucide-react'; // Icons for the card
+import { User, Gift, SkipForward, Lock } from 'lucide-react'; // Icons for the card
 import { type Participant, ParticipantStatus } from '../../contexts/MeetingContext';
 import { meetingTimerService } from '../../services/meetingTimerService';
+import { useUserContext } from '../../contexts/UserContext';
 
 interface ParticipantTimeCardProps {
   participant: Participant;
   isCurrentSpeaker: boolean;
   onDonateClick: (participantId: string) => void;
   onSkipClick?: (participantId: string) => void;
+  /**
+   * Optional override for current user ID - used for testing
+   */
+  currentUserId?: string;
 }
 
 /**
@@ -18,13 +23,26 @@ const ParticipantTimeCard: React.FC<ParticipantTimeCardProps> = ({
   participant,
   isCurrentSpeaker,
   onDonateClick,
-  onSkipClick
+  onSkipClick,
+  currentUserId
 }) => {
+  // Get user context to check permissions
+  const { isInteractiveUser, currentUser } = useUserContext();
+  
+  // Determine if the current user can interact with controls
+  const canInteract = isInteractiveUser(currentUserId);
+  
+  // Check if this card represents the current user
+  const isCurrentUserCard = currentUser?.id === participant.id;
   // Check if donation is possible for this participant
   const { canDonate, maxAmount } = meetingTimerService.canDonateTime(participant);
   
   // Format seconds to display as mm:ss
   const formatTime = (seconds: number): string => {
+    // Add defensive handling for undefined, null, or NaN values
+    if (seconds === undefined || seconds === null || isNaN(seconds)) {
+      seconds = 0;
+    }
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
@@ -92,28 +110,37 @@ const ParticipantTimeCard: React.FC<ParticipantTimeCardProps> = ({
         </div>
       </div>
       
-      {/* Action buttons */}
+      {/* Action buttons - only shown to interactive users */}
       <div className="flex justify-between mt-2">
-        <button 
-          className={`px-2 py-1 rounded text-xs flex items-center ${canDonate ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
-          onClick={() => canDonate && onDonateClick(participant.id)}
-          disabled={!canDonate}
-          title={canDonate ? `Can donate up to ${maxAmount} seconds` : "Cannot donate time"}
-          data-testid={`donate-btn-${participant.id}`}
-        >
-          <Gift className="w-3 h-3 mr-1" />
-          Donate
-        </button>
-        
-        {participant.status === ParticipantStatus.PENDING && onSkipClick && (
-          <button 
-            className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs flex items-center hover:bg-gray-200"
-            onClick={() => onSkipClick(participant.id)}
-            data-testid={`skip-btn-${participant.id}`}
-          >
-            <SkipForward className="w-3 h-3 mr-1" />
-            Skip
-          </button>
+        {canInteract ? (
+          <>
+            <button 
+              className={`px-2 py-1 rounded text-xs flex items-center ${canDonate ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+              onClick={() => canDonate && onDonateClick(participant.id)}
+              disabled={!canDonate}
+              title={canDonate ? `Can donate up to ${maxAmount} seconds` : "Cannot donate time"}
+              data-testid={`donate-btn-${participant.id}`}
+            >
+              <Gift className="w-3 h-3 mr-1" />
+              Donate
+            </button>
+            
+            {participant.status === ParticipantStatus.PENDING && onSkipClick && (
+              <button 
+                className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs flex items-center hover:bg-gray-200"
+                onClick={() => onSkipClick(participant.id)}
+                data-testid={`skip-btn-${participant.id}`}
+              >
+                <SkipForward className="w-3 h-3 mr-1" />
+                Skip
+              </button>
+            )}
+          </>
+        ) : (
+          <div className="flex items-center text-xs text-gray-500">
+            <Lock className="w-3 h-3 mr-1" />
+            <span>View only</span>
+          </div>
         )}
       </div>
     </div>

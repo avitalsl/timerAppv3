@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { MeetingProvider, useMeeting, type StoredTimerConfig, type KickoffSetting, type Participant } from './MeetingContext';
+import { MeetingProvider, useMeeting, type StoredTimerConfig, type KickoffSetting, type Participant, ParticipantStatus } from './MeetingContext';
 import React from 'react';
 
 // A test component to interact with the context
@@ -48,8 +48,30 @@ const TestComponent = () => {
   };
 
   const mockParticipants: Participant[] = [
-    { name: 'Alice', included: true },
-    { name: 'Bob', included: true },
+    { 
+      id: '1',
+      name: 'Alice', 
+      included: true,
+      allocatedTimeSeconds: 30,
+      remainingTimeSeconds: 30,
+      usedTimeSeconds: 0,
+      donatedTimeSeconds: 0,
+      receivedTimeSeconds: 0,
+      status: ParticipantStatus.PENDING,
+      hasSpeakerRole: false
+    },
+    { 
+      id: '2',
+      name: 'Bob', 
+      included: true,
+      allocatedTimeSeconds: 30,
+      remainingTimeSeconds: 30,
+      usedTimeSeconds: 0,
+      donatedTimeSeconds: 0,
+      receivedTimeSeconds: 0,
+      status: ParticipantStatus.PENDING,
+      hasSpeakerRole: false
+    },
   ];
 
   const startPerParticipantMeetingPayload = {
@@ -87,7 +109,7 @@ const TestComponent = () => {
       <button onClick={() => dispatch({ type: 'RESUME_TIMER' })}>
         Resume Timer
       </button>
-      <button onClick={() => dispatch({ type: 'TICK' })}>
+      <button onClick={() => dispatch({ type: 'TICK', payload: { elapsedSeconds: 1 } })}>
         Tick
       </button>
       <button onClick={() => dispatch({ type: 'NEXT_PARTICIPANT' })}>

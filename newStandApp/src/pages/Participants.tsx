@@ -6,6 +6,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { participantsStorageService } from '../services/participantsStorageService';
 import { participantListVisibilityStorageService } from '../services/participantListVisibilityStorageService';
 import type { Participant } from '../contexts/MeetingContext';
+import { ParticipantStatus } from '../contexts/MeetingContext';
+import { v4 as uuidv4 } from 'uuid';  // Add this import for generating unique IDs
 
 const Participants: React.FC = () => {
   const initialNames = ['Avital', 'Asaf', 'Yair', 'Eitan', 'Tal', 'Rotem', 'Yonatan'];
@@ -16,7 +18,18 @@ const Participants: React.FC = () => {
     
     // If we get an empty array, use our default names
     if (storedParticipants.length === 0) {
-      return initialNames.map(name => ({ name, included: false }));
+      return initialNames.map(name => ({
+        id: uuidv4(),
+        name,
+        included: false,
+        allocatedTimeSeconds: 0,
+        remainingTimeSeconds: 0,
+        usedTimeSeconds: 0,
+        donatedTimeSeconds: 0,
+        receivedTimeSeconds: 0,
+        status: ParticipantStatus.PENDING,
+        hasSpeakerRole: false
+      }));
     }
     
     return storedParticipants;
@@ -67,7 +80,18 @@ const Participants: React.FC = () => {
       setError('Participant already exists');
       return;
     }
-    setParticipants([...participants, { name: trimmed, included: true }]);
+    setParticipants([...participants, { 
+      id: uuidv4(),  // Generate unique ID
+      name: trimmed, 
+      included: true,
+      allocatedTimeSeconds: 0,
+      remainingTimeSeconds: 0,
+      usedTimeSeconds: 0,
+      donatedTimeSeconds: 0,
+      receivedTimeSeconds: 0,
+      status: ParticipantStatus.PENDING,
+      hasSpeakerRole: false
+    }]);
     setSearchTerm('');
     setError('');
   };
@@ -130,12 +154,16 @@ const Participants: React.FC = () => {
               <li className="text-gray-400 text-center">No participants selected.</li>
             ) : (
               participants.filter(p => p.included).map((participant) => (
-                <li key={participant.name} className="flex items-center gap-2 bg-primary-sandLight border-2 border-primary-sandLight px-3 py-1 rounded justify-between">
+                <li key={participant.id} className="flex items-center gap-2 bg-primary-sandLight border-2 border-primary-sandLight px-3 py-1 rounded justify-between">
                   <span className="text-sm font-medium text-gray-700">{participant.name}</span>
                   <button
                     className="w-5 h-5 flex items-center justify-center text-xs rounded-full p-0 hover:bg-primary-sand focus:outline-none"
                     style={{fontSize: '0.75rem', lineHeight: 1, color: 'hsl(0, 75%, 85%)'}}
-                    onClick={() => setParticipants(participants.map(p => p.name === participant.name ? { ...p, included: false } : p))}
+                    onClick={() => setParticipants(participants.map(p => p.id === participant.id ? 
+                      { 
+                        ...p, 
+                        included: false 
+                      } : p))}
                     data-testid={`btn-remove-selected-${participant.name}`}
                     aria-label={`Remove ${participant.name}`}
                   >
@@ -154,12 +182,23 @@ const Participants: React.FC = () => {
               <li className="text-gray-400 text-center">No optional participants left.</li>
             ) : (
               filteredParticipants.filter(p => !p.included).map(participant => (
-                <li key={participant.name} className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded justify-between">
+                <li key={participant.id} className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded justify-between">
                   <span className="text-sm font-medium text-gray-700">{participant.name}</span>
                   <button
                     className="text-xs bg-primary-sandLight border-2 border-primary-sand text-gray-700 rounded px-2 py-0.5 hover:bg-primary-sand"
                     onClick={() => {
-  setParticipants(participants.map(p => p.name === participant.name ? { ...p, included: true } : p));
+  setParticipants(participants.map(p => p.id === participant.id ? 
+    { 
+      ...p, 
+      included: true,
+      allocatedTimeSeconds: 0,
+      remainingTimeSeconds: 0,
+      usedTimeSeconds: 0,
+      donatedTimeSeconds: 0,
+      receivedTimeSeconds: 0,
+      status: ParticipantStatus.PENDING,
+      hasSpeakerRole: false
+    } : p));
   setSearchTerm('');
 }}
                     data-testid={`btn-add-optional-${participant.name}`}

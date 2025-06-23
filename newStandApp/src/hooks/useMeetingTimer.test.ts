@@ -41,7 +41,7 @@ describe('useMeetingTimer', () => {
     vi.clearAllMocks();
   });
 
-  it('should dispatch TICK when active and running in fixed mode', () => {
+  it('should dispatch TICK with elapsedSeconds payload when active and running in fixed mode', () => {
     mockState.isMeetingActive = true;
     mockState.timerStatus = 'running';
     mockState.currentTimeSeconds = 5;
@@ -54,7 +54,7 @@ describe('useMeetingTimer', () => {
       vi.advanceTimersByTime(1000); // Advance time by 1 second
     });
 
-    expect(mockDispatch).toHaveBeenCalledWith({ type: 'TICK' });
+    expect(mockDispatch).toHaveBeenCalledWith({ type: 'TICK', payload: { elapsedSeconds: 1 } });
     expect(mockDispatch).toHaveBeenCalledTimes(1);
   });
 
@@ -72,7 +72,7 @@ describe('useMeetingTimer', () => {
     });
     
     // Check that TICK was dispatched
-    expect(mockDispatch).toHaveBeenCalledWith({ type: 'TICK' });
+    expect(mockDispatch).toHaveBeenCalledWith({ type: 'TICK', payload: { elapsedSeconds: 1 } });
     expect(mockDispatch).toHaveBeenCalledTimes(1);
 
     // --- Simulate the re-render cycle ---
