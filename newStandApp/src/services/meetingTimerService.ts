@@ -7,7 +7,8 @@ import type { Participant, MeetingState } from '../contexts/MeetingContext';
  */
 export function canDonateTime(participant: Participant): { canDonate: boolean; maxAmount: number } {
   // Participant can donate if they have more than 10 seconds remaining
-  const canDonate = participant.remainingTimeSeconds > 10;
+  // and they are not the current active speaker
+  const canDonate = participant.remainingTimeSeconds > 10 && participant.status !== ParticipantStatus.ACTIVE;
   return { canDonate, maxAmount: canDonate ? 10 : 0 };
 }
 

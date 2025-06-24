@@ -11,6 +11,8 @@ import TimerSetup from './pages/TimerSetup'
 import Participants from './pages/Participants'
 import LinksSetup from './pages/LinksSetup'
 import ChecklistTime from './pages/ChecklistTime'
+// Import SprintGoals component
+import SprintGoals from './pages/SprintGoals'
 import KickoffScreen from './components/KickoffScreen'
 import { MeetingProvider } from './contexts/MeetingContext';
 import { ComponentVisibilityProvider } from './hooks/ComponentVisibilityProvider';
@@ -30,6 +32,7 @@ function App() {
                 <Route path="participants" element={<Participants />} />
                 <Route path="links" element={<LinksSetup />} />
                 <Route path="checklist" element={<ChecklistTime />} />
+                <Route path="sprintgoals" element={<SprintGoals />} />
                 <Route path="kickoff" element={<KickoffScreen />} />
               <Route path="*" element={<Navigate to="/" replace />} />
               </Route>

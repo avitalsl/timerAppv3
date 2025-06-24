@@ -26,14 +26,14 @@ const StoryTimeManager: React.FC<StoryTimeManagerProps> = () => {
 
   // Story time mode is confirmed by the check above, now check for participants
   if (participants.length > 0) { 
+    // Use all participants, regardless of type
     if (kickoffSettings.storyOption === 'random') {
-      // Basic random selection for now, can be improved
+      // Random selection from all participants
       const randomIndex = Math.floor(Math.random() * participants.length);
       storyteller = participants[randomIndex];
     } else if (kickoffSettings.storyOption === 'manual') {
-      // Manual selection logic would go here, potentially involving another UI or prop
-      // For now, let's pick the first participant as a placeholder for manual selection
-      storyteller = participants[0]; // Assign first participant if manual and participants exist
+      // Manual selection - pick the first participant
+      storyteller = participants[0];
     }
   }
 

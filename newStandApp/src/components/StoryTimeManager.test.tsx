@@ -27,7 +27,7 @@ describe('StoryTimeManager', () => {
       usedTimeSeconds: 0,
       status: 'PENDING',
       hasSpeakerRole: false,
-      type: 'viewOnly'
+      type: 'interactive'
     },
     { 
       id: '2',
@@ -38,7 +38,7 @@ describe('StoryTimeManager', () => {
       usedTimeSeconds: 0,
       status: 'PENDING',
       hasSpeakerRole: false,
-      type: 'viewOnly'
+      type: 'interactive'
     },
     { 
       id: '3',
@@ -49,7 +49,7 @@ describe('StoryTimeManager', () => {
       usedTimeSeconds: 0,
       status: 'PENDING',
       hasSpeakerRole: false,
-      type: 'viewOnly'
+      type: 'interactive'
     },
   ];
 
@@ -142,5 +142,79 @@ describe('StoryTimeManager', () => {
     expect(screen.getByTestId('story-time-manager')).toBeInTheDocument();
     expect(screen.getByTestId('story-teller-pending')).toBeInTheDocument();
     expect(screen.getByText('Waiting to determine the storyteller (or no participants available)...')).toBeInTheDocument();
+  });
+
+  // Test with all viewOnly participants
+  it('should select a storyteller when all participants are viewOnly', () => {
+    const allViewOnlyParticipants = [
+      {
+        id: '1',
+        name: 'Alice',
+        included: true,
+        allocatedTimeSeconds: 60,
+        remainingTimeSeconds: 60,
+        usedTimeSeconds: 0,
+        status: 'PENDING',
+        hasSpeakerRole: false,
+        type: 'viewOnly'
+      }
+    ];
+    
+    mockUseMeeting.mockReturnValue({
+      state: {
+        kickoffSettings: { mode: 'storyTime', storyOption: 'random' },
+        participants: allViewOnlyParticipants, // All viewOnly participants
+      },
+      dispatch: vi.fn(),
+    });
+    
+    render(<StoryTimeManager />);
+    
+    expect(screen.getByTestId('story-time-manager')).toBeInTheDocument();
+    expect(screen.getByTestId('story-teller-announcement')).toBeInTheDocument();
+    expect(screen.getByText(/Our storyteller is:/)).toBeInTheDocument();
+    expect(screen.getByText('Alice')).toBeInTheDocument();
+  });
+
+  // Test with a mix of interactive and viewOnly participants
+  it('should select the first participant as storyteller in manual mode', () => {
+    const mixedParticipants = [
+      {
+        id: '1',
+        name: 'Alice',
+        included: true,
+        allocatedTimeSeconds: 60,
+        remainingTimeSeconds: 60,
+        usedTimeSeconds: 0,
+        status: 'PENDING',
+        hasSpeakerRole: false,
+        type: 'viewOnly'
+      },
+      {
+        id: '2',
+        name: 'Bob',
+        included: true,
+        allocatedTimeSeconds: 60,
+        remainingTimeSeconds: 60,
+        usedTimeSeconds: 0,
+        status: 'PENDING',
+        hasSpeakerRole: false,
+        type: 'interactive'
+      }
+    ];
+    
+    mockUseMeeting.mockReturnValue({
+      state: {
+        kickoffSettings: { mode: 'storyTime', storyOption: 'manual' },
+        participants: mixedParticipants,
+      },
+      dispatch: vi.fn(),
+    });
+    
+    render(<StoryTimeManager />);
+    
+    expect(screen.getByTestId('story-time-manager')).toBeInTheDocument();
+    expect(screen.getByText(/Our storyteller is:/)).toBeInTheDocument();
+    expect(screen.getByText('Alice')).toBeInTheDocument();
   });
 });

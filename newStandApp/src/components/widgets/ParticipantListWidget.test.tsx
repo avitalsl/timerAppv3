@@ -275,7 +275,9 @@ describe('ParticipantListWidget', () => {
     // Verify that the DONATE_TIME action was dispatched with the correct fromParticipantId
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'DONATE_TIME',
-      fromParticipantId: '1' // Alice's ID
+      payload: {
+        fromParticipantId: '1' // Alice's ID
+      }
     });
   });
 });

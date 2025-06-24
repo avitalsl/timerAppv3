@@ -17,7 +17,7 @@ const ComponentPicker: React.FC<ComponentPickerProps> = ({
     <div className="bg-white rounded-lg p-3" data-testid="component-picker">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-medium text-gray-700">
-          Meeting View Components
+          Layout Components
         </h3>
       </div>
       <div className="flex flex-wrap gap-2">

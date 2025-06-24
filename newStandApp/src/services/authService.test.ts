@@ -62,6 +62,11 @@ describe('authService', () => {
       const result = authService.matchParticipantByEmail('', mockParticipants);
       expect(result).toBeNull();
     });
+
+    it('should return null with empty participants list', () => {
+      const result = authService.matchParticipantByEmail('john.doe@example.com', []);
+      expect(result).toBeNull();
+    });
   });
 
   describe('updateParticipantFromUser', () => {
@@ -105,6 +110,23 @@ describe('authService', () => {
       expect(result.allocatedTimeSeconds).toBe(120);
       expect(result.remainingTimeSeconds).toBe(120);
       expect(result.usedTimeSeconds).toBe(0);
+    });
+
+    it('should handle user with no email', () => {
+      const userWithoutEmail: AppUser = {
+        id: 'user2',
+        name: 'No Email User',
+        type: 'interactive',
+        isAuthenticated: true
+        // email is undefined
+      };
+      
+      const result = authService.createParticipantFromUser(userWithoutEmail);
+      
+      expect(result.name).toBe(userWithoutEmail.name);
+      expect(result.email).toBeUndefined();
+      expect(result.userId).toBe(userWithoutEmail.id);
+      expect(result.type).toBe('interactive');
     });
   });
 });

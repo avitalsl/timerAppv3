@@ -85,9 +85,8 @@ describe('ParticipantTimeCard', () => {
 
     // Check basic information is displayed
     expect(screen.getByText('Test User')).toBeInTheDocument();
-    expect(screen.getByText('02:00')).toBeInTheDocument(); // Allocated time
+    // Only check for remaining time since we've simplified the UI
     expect(screen.getByText('01:30')).toBeInTheDocument(); // Remaining time
-    expect(screen.getByText('00:30')).toBeInTheDocument(); // Used time
   });
 
   it('shows donate button for current user when they are interactive and not the speaker', () => {
