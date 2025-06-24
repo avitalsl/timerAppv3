@@ -25,10 +25,9 @@ const Participants: React.FC = () => {
         allocatedTimeSeconds: 0,
         remainingTimeSeconds: 0,
         usedTimeSeconds: 0,
-        donatedTimeSeconds: 0,
-        receivedTimeSeconds: 0,
         status: ParticipantStatus.PENDING,
-        hasSpeakerRole: false
+        hasSpeakerRole: false,
+        type: 'viewOnly' as const // Use const assertion to fix type error
       }));
     }
     
@@ -87,10 +86,9 @@ const Participants: React.FC = () => {
       allocatedTimeSeconds: 0,
       remainingTimeSeconds: 0,
       usedTimeSeconds: 0,
-      donatedTimeSeconds: 0,
-      receivedTimeSeconds: 0,
       status: ParticipantStatus.PENDING,
-      hasSpeakerRole: false
+      hasSpeakerRole: false,
+      type: 'viewOnly' as const // Use const assertion to fix type error
     }]);
     setSearchTerm('');
     setError('');
@@ -194,10 +192,9 @@ const Participants: React.FC = () => {
       allocatedTimeSeconds: 0,
       remainingTimeSeconds: 0,
       usedTimeSeconds: 0,
-      donatedTimeSeconds: 0,
-      receivedTimeSeconds: 0,
       status: ParticipantStatus.PENDING,
-      hasSpeakerRole: false
+      hasSpeakerRole: false,
+      type: p.type || ('viewOnly' as const) // Preserve existing type or default to 'viewOnly'
     } : p));
   setSearchTerm('');
 }}

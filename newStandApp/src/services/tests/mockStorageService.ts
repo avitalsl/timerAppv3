@@ -30,7 +30,12 @@ export function setMockItem<T>(key: string, value: T): void {
 export const mockKickoffSettingsStorageService = {
   getKickoffSettings(): KickoffSetting {
     const settings = getMockItem<KickoffSetting>('kickoffSetting');
-    return settings || { mode: 'getDownToBusiness', storyOption: null };
+    return settings || { 
+      mode: 'getDownToBusiness', 
+      storyOption: null,
+      storyDurationSeconds: undefined,
+      storytellerName: ''
+    };
   },
   
   saveKickoffSettings(settings: KickoffSetting): boolean {

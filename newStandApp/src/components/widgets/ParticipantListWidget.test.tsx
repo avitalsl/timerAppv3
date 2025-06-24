@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import ParticipantListWidget from './ParticipantListWidget';
 import { useMeeting } from '../../contexts/MeetingContext';
@@ -42,41 +42,38 @@ const mockUseMeeting = useMeeting as Mock;
 
 describe('ParticipantListWidget', () => {
   const mockParticipants: Participant[] = [
-    { 
+    {
       id: '1',
-      name: 'Alice', 
+      name: 'Alice',
       included: true,
       allocatedTimeSeconds: 120,
       remainingTimeSeconds: 120,
       usedTimeSeconds: 0,
-      donatedTimeSeconds: 0,
-      receivedTimeSeconds: 0,
       status: ParticipantStatus.PENDING,
-      hasSpeakerRole: false
+      hasSpeakerRole: false,
+      type: 'viewOnly'
     },
-    { 
+    {
       id: '2',
-      name: 'Bob', 
+      name: 'Bob',
       included: true,
       allocatedTimeSeconds: 120,
       remainingTimeSeconds: 120,
       usedTimeSeconds: 0,
-      donatedTimeSeconds: 0,
-      receivedTimeSeconds: 0,
       status: ParticipantStatus.PENDING,
-      hasSpeakerRole: false
+      hasSpeakerRole: false,
+      type: 'viewOnly'
     },
-    { 
+    {
       id: '3',
-      name: 'Charlie', 
+      name: 'Charlie',
       included: true,
       allocatedTimeSeconds: 120,
       remainingTimeSeconds: 120,
       usedTimeSeconds: 0,
-      donatedTimeSeconds: 0,
-      receivedTimeSeconds: 0,
       status: ParticipantStatus.PENDING,
-      hasSpeakerRole: false
+      hasSpeakerRole: false,
+      type: 'viewOnly'
     },
   ];
 
@@ -223,5 +220,62 @@ describe('ParticipantListWidget', () => {
     const participant1 = screen.getByTestId('participant-card-2');
     expect(participant1).not.toHaveClass('ring-2');
     expect(participant1).not.toHaveClass('ring-primary-dark');
+  });
+
+  it('dispatches DONATE_TIME action with correct fromParticipantId when donate button is clicked', () => {
+    // Mock dispatch function
+    const mockDispatch = vi.fn();
+    
+    // Set up current user as interactive user
+    (useUserContext as any).mockReturnValue({
+      isInteractiveUser: () => true,
+      currentUser: { id: '1', name: 'Alice', type: 'interactive' }
+    });
+    
+    // Set up meeting state with a current speaker
+    mockUseMeeting.mockReturnValue({
+      state: {
+        participants: mockParticipants,
+        currentParticipantIndex: 1, // Bob is speaking
+        currentSpeakerId: '2', // Bob's ID
+        participantListVisibilityMode: 'normal',
+        timerConfig: { mode: 'per-participant', durationSeconds: 300 },
+        isMeetingActive: true,
+      },
+      dispatch: mockDispatch,
+    });
+    
+    // Update the first participant to be interactive type with enough time to donate
+    const interactiveParticipants = mockParticipants.map(p => 
+      p.id === '1' ? { ...p, type: 'interactive', remainingTimeSeconds: 60 } : p
+    );
+    
+    mockUseMeeting.mockReturnValue({
+      state: {
+        participants: interactiveParticipants,
+        currentParticipantIndex: 1, // Bob is speaking
+        currentSpeakerId: '2', // Bob's ID
+        participantListVisibilityMode: 'normal',
+        timerConfig: { mode: 'per-participant', durationSeconds: 300 },
+        isMeetingActive: true,
+      },
+      dispatch: mockDispatch,
+    });
+    
+    // Render the component
+    render(<ParticipantListWidget />);
+    
+    // Find the donate button on Alice's card (id='1')
+    const donateButton = screen.getByTestId('donate-btn-1');
+    expect(donateButton).toBeInTheDocument();
+    
+    // Click the donate button
+    fireEvent.click(donateButton);
+    
+    // Verify that the DONATE_TIME action was dispatched with the correct fromParticipantId
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'DONATE_TIME',
+      fromParticipantId: '1' // Alice's ID
+    });
   });
 });

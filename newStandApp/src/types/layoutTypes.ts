@@ -54,7 +54,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     label: 'Meeting participant list',
     defaultSize: { w: 4, h: 4 },
     minSize: { w: 4, h: 2 },
-    renderPriority: 10, // Default priority for existing components
+    renderPriority: 3, // Default priority for existing components
     isUserSelectableInSetup: true,
   },
   {
@@ -99,7 +99,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     label: 'Checklist time',
     defaultSize: { w: 4, h: 3 },
     minSize: { w: 4, h: 2 },
-    renderPriority: 10, // Default priority for existing components
+    renderPriority: 2, // Default priority for existing components
     isUserSelectableInSetup: true,
   },
   {

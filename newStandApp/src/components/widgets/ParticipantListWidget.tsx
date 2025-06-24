@@ -1,25 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useMeeting } from '../../contexts/MeetingContext';
 import { User } from 'lucide-react'; // User icon for participants
 import ParticipantTimeCard from './ParticipantTimeCard';
-import TimeDonationModal from './TimeDonationModal';
-import { meetingTimerService } from '../../services/meetingTimerService';
+import { useUserContext } from '../../contexts/UserContext';
 
 const ParticipantListWidget: React.FC = () => {
   const { state, dispatch } = useMeeting();
+  const { currentUser } = useUserContext();
   const {
     participants,
     currentParticipantIndex,
     participantListVisibilityMode,
-    timerConfig,
     isMeetingActive // Added to ensure we only render meaningfully during a meeting
   } = state;
-
-  // State for donation modal
-  const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
-  const [donorId, setDonorId] = useState<string>('');
-  const [recipientId, setRecipientId] = useState<string>('');
-  const [maxDonationSeconds, setMaxDonationSeconds] = useState(0);
 
   // Early exit or placeholder if meeting is not active or no participants
   if (!isMeetingActive) {
@@ -40,27 +33,16 @@ const ParticipantListWidget: React.FC = () => {
     );
   }
 
-  // Handle donation button click
-  const handleDonateClick = (participantId: string) => {
-    // Find the participant who will receive the donation
-    const recipient = participants.find(p => p.id === participantId);
-    if (!recipient) return;
-
-    // Find the current speaker (donor)
-    const currentSpeakerIndex = currentParticipantIndex !== null ? currentParticipantIndex : -1;
-    if (currentSpeakerIndex === -1) return;
+  // Handle donation button click - now simplified to just dispatch the action
+  const handleDonateClick = () => {
+    if (!currentUser?.id) return;
     
-    const donor = participants[currentSpeakerIndex];
-    
-    // Check if donation is possible and get max amount
-    const { canDonate, maxAmount } = meetingTimerService.canDonateTime(donor);
-    if (!canDonate || maxAmount <= 0) return;
-    
-    // Set state for modal
-    setDonorId(donor.id);
-    setRecipientId(participantId);
-    setMaxDonationSeconds(maxAmount);
-    setIsDonationModalOpen(true);
+    dispatch({
+      type: 'DONATE_TIME',
+      payload: {
+        fromParticipantId: currentUser.id
+      }
+    });
   };
 
   // Handle skip button click
@@ -68,18 +50,6 @@ const ParticipantListWidget: React.FC = () => {
     dispatch({
       type: 'SKIP_PARTICIPANT',
       payload: { participantId }
-    });
-  };
-
-  // Handle donation submission
-  const handleDonationSubmit = (donorId: string, recipientId: string, seconds: number) => {
-    dispatch({
-      type: 'DONATE_TIME',
-      payload: {
-        fromParticipantId: donorId,
-        toParticipantId: recipientId,
-        amountSeconds: seconds
-      }
     });
   };
 
@@ -110,16 +80,6 @@ const ParticipantListWidget: React.FC = () => {
           );
         })}
       </div>
-      
-      {/* Time Donation Modal */}
-      <TimeDonationModal
-        isOpen={isDonationModalOpen}
-        onClose={() => setIsDonationModalOpen(false)}
-        donorId={donorId}
-        recipientId={recipientId}
-        maxDonationSeconds={maxDonationSeconds}
-        onDonationSubmit={handleDonationSubmit}
-      />
     </div>
   );
 };

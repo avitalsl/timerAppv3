@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { auth } from '../firebase';
 import { onAuthStateChanged, type User } from 'firebase/auth';
-import { USER_TYPES } from '../types/userTypes';
 import type { AppUser, UserType } from '../types/userTypes';
+import { participantsStorageService, authService } from '../services';
 
 // Define the context interface
 interface UserContextType {
@@ -57,8 +57,42 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setCurrentUser(createAppUserFromFirebase(firebaseUser));
+      // Convert Firebase user to AppUser
+      const appUser = createAppUserFromFirebase(firebaseUser);
+      setCurrentUser(appUser);
+      
+      // If user is authenticated, handle participant matching and updating
+      if (appUser && appUser.email) {
+        // Get current participants list
+        const participants = participantsStorageService.getParticipants();
+        
+        // Try to find a matching participant by email
+        const matchedParticipant = authService.matchParticipantByEmail(appUser.email, participants);
+        
+        if (matchedParticipant) {
+          // Update the matched participant to be interactive
+          const updatedParticipant = authService.updateParticipantFromUser(matchedParticipant, appUser);
+          
+          // Update the participant in the list
+          const updatedParticipants = participants.map(p => 
+            p.id === updatedParticipant.id ? updatedParticipant : p
+          );
+          
+          // Save the updated list
+          participantsStorageService.saveParticipants(updatedParticipants);
+        } else {
+          // Create a new interactive participant from the user
+          const newParticipant = authService.createParticipantFromUser(appUser);
+          
+          // Add the new participant to the list
+          const updatedParticipants = [...participants, newParticipant];
+          
+          // Save the updated list
+          participantsStorageService.saveParticipants(updatedParticipants);
+        }
+      }
     });
+    
     return unsubscribe;
   }, []);
   

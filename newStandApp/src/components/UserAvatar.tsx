@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { type User } from 'firebase/auth';
 import { signOut } from 'firebase/auth'; // For signOut
 import { auth, signInWithGoogle } from '../firebase'; // For auth and signInWithGoogle
+import type { AppUser } from '../types/userTypes';
 
 interface UserAvatarProps {
-  user: User | null;
+  user: AppUser | null;
 }
 
 const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
@@ -26,12 +26,12 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
       {/* Avatar circle - direct child of the relative container */}
       <div
         className="flex items-center justify-center w-10 h-10 bg-primary-dark rounded-full cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-green-600 transition-all duration-150 ease-in-out"
-        title={user?.displayName || user?.email || 'User'}
+        title={user?.name || user?.email || 'User'}
         data-testid="user-avatar-circle"
       >
         {/* Always display initials, photoURL logic is removed */}
         <span className="text-lg text-white" data-testid="user-avatar-initials">
-          {getInitials(user?.displayName || user?.email || '')}
+          {getInitials(user?.name || user?.email || '')}
         </span>
       </div>
 

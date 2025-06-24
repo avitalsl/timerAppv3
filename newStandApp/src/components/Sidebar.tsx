@@ -5,6 +5,7 @@ import {
   SettingsIcon,
   UsersIcon,
   LinkIcon,
+  CheckSquareIcon,
 } from 'lucide-react'
 import { useComponentVisibility } from '../hooks/useComponentVisibility';
 
@@ -82,6 +83,20 @@ const Sidebar = () => {
           >
             <LinkIcon className="h-5 w-5" />
             <span className="ml-3 hidden tablet:block">Set Links</span>
+          </NavLink>
+        )}
+        
+        {/* Checklist - Only visible if selected */}
+        {selectedFeatures.includes('checklist') && (
+          <NavLink
+            to="/checklist"
+            className={({ isActive }) =>
+              `flex items-center py-3 px-4 ${isActive ? 'bg-[#2c4066] border-l-4 border-[#4a9fff]' : ''}`
+            }
+            data-testid="sidebar-nav-link-checklist"
+          >
+            <CheckSquareIcon className="h-5 w-5" />
+            <span className="ml-3 hidden tablet:block">Checklist Time</span>
           </NavLink>
         )}
         

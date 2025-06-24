@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import UserAvatar from './UserAvatar';
-import type { User } from 'firebase/auth';
+import type { AppUser } from '../types/userTypes';
 import { signOut } from 'firebase/auth';
 import { signInWithGoogle } from '../firebase';
 
@@ -15,24 +15,12 @@ const mockSignInWithGoogle = signInWithGoogle as Mock;
 
 describe('UserAvatar', () => {
   // A mock user object for testing the logged-in state
-  const mockUser: User = {
-    uid: '12345',
-    displayName: 'Test User',
+  const mockUser: AppUser = {
+    id: '12345',
+    name: 'Test User',
     email: 'test@example.com',
-    photoURL: null, 
-    phoneNumber: null, 
-    emailVerified: true, 
-    isAnonymous: false, 
-    metadata: {}, 
-    providerData: [],
-    providerId: 'google.com', 
-    refreshToken: 'token', 
-    tenantId: null, 
-    delete: vi.fn(),
-    getIdToken: vi.fn(), 
-    getIdTokenResult: vi.fn(), 
-    reload: vi.fn(), 
-    toJSON: vi.fn(),
+    type: 'interactive',
+    isAuthenticated: true
   };
 
   beforeEach(() => {

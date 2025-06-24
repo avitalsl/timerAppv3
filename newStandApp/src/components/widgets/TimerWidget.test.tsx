@@ -292,4 +292,46 @@ describe('TimerWidget', () => {
     expect(progressArc).toHaveClass('stroke-primary-buttonColor');
     expect(progressArc).toHaveClass('transition-all');
   });
+
+  it('shows donation animation when time increases during running state', () => {
+    // First render with initial time
+    mockUseMeeting.mockReturnValue({
+      state: {
+        currentTimeSeconds: 120,
+        timerStatus: 'running',
+        isMeetingActive: true,
+        timerConfig: { durationSeconds: 300, mode: 'fixed' },
+        participants: [],
+        currentParticipantIndex: 0,
+      },
+      dispatch: mockDispatch,
+    });
+    
+    const { rerender } = render(<TimerWidget />);
+    
+    // No animation should be visible initially
+    expect(screen.queryByTestId('donation-animation')).not.toBeInTheDocument();
+    
+    // Update with increased time (as if a donation occurred)
+    mockUseMeeting.mockReturnValue({
+      state: {
+        currentTimeSeconds: 130, // 10 seconds added
+        timerStatus: 'running',
+        isMeetingActive: true,
+        timerConfig: { durationSeconds: 300, mode: 'fixed' },
+        participants: [],
+        currentParticipantIndex: 0,
+      },
+      dispatch: mockDispatch,
+    });
+    
+    // Re-render with the updated state
+    rerender(<TimerWidget />);
+    
+    // Animation should now be visible
+    const donationAnimation = screen.getByTestId('donation-animation');
+    expect(donationAnimation).toBeInTheDocument();
+    expect(screen.getByText('+10s')).toBeInTheDocument();
+    expect(donationAnimation.querySelector('.animate-bounce-fade')).not.toBeNull();
+  });
 });

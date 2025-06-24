@@ -12,10 +12,9 @@ describe('meetingTimerService', () => {
     allocatedTimeSeconds: 120,
     remainingTimeSeconds: 90,
     usedTimeSeconds: 30,
-    donatedTimeSeconds: 10,
-    receivedTimeSeconds: 20,
     status: ParticipantStatus.ACTIVE,
     hasSpeakerRole: true,
+    type: 'interactive', // Add required type field
     ...overrides
   });
 
@@ -40,10 +39,9 @@ describe('meetingTimerService', () => {
         allocatedTimeSeconds: 120,
         remainingTimeSeconds: 90,
         usedTimeSeconds: 30,
-        donatedTimeSeconds: 0,
-        receivedTimeSeconds: 0,
         status: ParticipantStatus.ACTIVE,
-        hasSpeakerRole: true
+        hasSpeakerRole: true,
+        type: 'interactive' // Add required type field
       },
       {
         id: 'participant-2',
@@ -52,10 +50,9 @@ describe('meetingTimerService', () => {
         allocatedTimeSeconds: 120,
         remainingTimeSeconds: 120,
         usedTimeSeconds: 0,
-        donatedTimeSeconds: 0,
-        receivedTimeSeconds: 0,
         status: ParticipantStatus.PENDING,
-        hasSpeakerRole: false
+        hasSpeakerRole: false,
+        type: 'viewOnly' // Add required type field
       },
       {
         id: 'participant-3',
@@ -64,14 +61,12 @@ describe('meetingTimerService', () => {
         allocatedTimeSeconds: 120,
         remainingTimeSeconds: 0,
         usedTimeSeconds: 120,
-        donatedTimeSeconds: 0,
-        receivedTimeSeconds: 0,
         status: ParticipantStatus.FINISHED,
-        hasSpeakerRole: false
+        hasSpeakerRole: false,
+        type: 'viewOnly' // Add required type field
       }
     ],
     speakerQueue: ['participant-2'],
-    timeDonations: [],
     // Additional required properties
     kickoffSettings: {
       mode: 'getDownToBusiness',
@@ -86,90 +81,31 @@ describe('meetingTimerService', () => {
     ...overrides
   });
 
-  describe('calculateTotalAvailableTime', () => {
-    it('should calculate total available time correctly', () => {
-      const participant = createMockParticipant();
-      const result = meetingTimerService.calculateTotalAvailableTime(participant);
-      
-      // 120 (allocated) + 20 (received) - 10 (donated) = 130
-      expect(result).toBe(130);
-    });
-
-    it('should handle zero values correctly', () => {
-      const participant = createMockParticipant({
-        allocatedTimeSeconds: 60,
-        receivedTimeSeconds: 0,
-        donatedTimeSeconds: 0
-      });
-      
-      const result = meetingTimerService.calculateTotalAvailableTime(participant);
-      expect(result).toBe(60);
-    });
-  });
-
-  describe('calculateRemainingTime', () => {
-    it('should calculate remaining time correctly', () => {
-      const participant = createMockParticipant();
-      const result = meetingTimerService.calculateRemainingTime(participant);
-      
-      // 130 (total available) - 30 (used) = 100
-      expect(result).toBe(100);
-    });
-
-    it('should handle zero used time correctly', () => {
-      const participant = createMockParticipant({
-        allocatedTimeSeconds: 60,
-        receivedTimeSeconds: 15,
-        donatedTimeSeconds: 5,
-        usedTimeSeconds: 0
-      });
-      
-      const result = meetingTimerService.calculateRemainingTime(participant);
-      // 60 (allocated) + 15 (received) - 5 (donated) - 0 (used) = 70
-      expect(result).toBe(70);
-    });
-  });
-
   describe('canDonateTime', () => {
-    it('should allow PENDING participants to donate up to 10% of allocated time', () => {
+    it('should allow donation when user has more than 10 seconds remaining', () => {
       const participant = createMockParticipant({
         status: ParticipantStatus.PENDING,
-        allocatedTimeSeconds: 120
+        remainingTimeSeconds: 60
       });
       
       const result = meetingTimerService.canDonateTime(participant);
       expect(result.canDonate).toBe(true);
-      expect(result.maxAmount).toBe(12); // 10% of 120 = 12
+      expect(result.maxAmount).toBe(10);
     });
 
-    it('should allow FINISHED participants to donate all remaining time', () => {
+    it('should not allow donation when user has 10 or fewer seconds remaining', () => {
       const participant = createMockParticipant({
-        status: ParticipantStatus.FINISHED,
-        allocatedTimeSeconds: 120,
-        usedTimeSeconds: 80,
-        remainingTimeSeconds: 40
+        remainingTimeSeconds: 10
       });
       
       const result = meetingTimerService.canDonateTime(participant);
-      expect(result.canDonate).toBe(true);
-      expect(result.maxAmount).toBe(50); // 120 (allocated) + 20 (received) - 10 (donated) - 80 (used) = 50
+      expect(result.canDonate).toBe(false);
+      expect(result.maxAmount).toBe(0);
     });
 
-    it('should allow SKIPPED participants to donate all remaining time', () => {
+    it('should not allow donation for active speakers', () => {
       const participant = createMockParticipant({
-        status: ParticipantStatus.SKIPPED,
-        allocatedTimeSeconds: 120,
-        usedTimeSeconds: 0,
-        remainingTimeSeconds: 120
-      });
-      
-      const result = meetingTimerService.canDonateTime(participant);
-      expect(result.canDonate).toBe(true);
-      expect(result.maxAmount).toBe(130); // 120 (allocated) + 20 (received) - 10 (donated) - 0 (used) = 130
-    });
-
-    it('should not allow ACTIVE participants to donate time', () => {
-      const participant = createMockParticipant({
+        remainingTimeSeconds: 60,
         status: ParticipantStatus.ACTIVE
       });
       
@@ -182,58 +118,45 @@ describe('meetingTimerService', () => {
   describe('donateTime', () => {
     it('should process a valid donation correctly', () => {
       const state = createMockState();
-      const result = meetingTimerService.donateTime(state, 'participant-2', 'participant-1', 10);
+      const result = meetingTimerService.donateTime(state, 'participant-2');
       
-      // Check that the donor's donated time increased
+      // Check that the donor's time was reduced
       const updatedDonor = result.participants.find(p => p.id === 'participant-2');
-      expect(updatedDonor?.donatedTimeSeconds).toBe(10);
+      expect(updatedDonor?.remainingTimeSeconds).toBe(110); // 120 - 10
       
-      // Check that the recipient's received time and remaining time increased
+      // Check that the recipient's time was increased
       const updatedRecipient = result.participants.find(p => p.id === 'participant-1');
-      expect(updatedRecipient?.receivedTimeSeconds).toBe(10);
       expect(updatedRecipient?.remainingTimeSeconds).toBe(100); // 90 + 10
       
-      // Check that the donation was recorded
-      expect(result.timeDonations.length).toBe(1);
-      expect(result.timeDonations[0].fromParticipantId).toBe('participant-2');
-      expect(result.timeDonations[0].toParticipantId).toBe('participant-1');
-      expect(result.timeDonations[0].amountSeconds).toBe(10);
+      // Check that the current time was also updated
+      expect(result.currentTimeSeconds).toBe(100); // 90 + 10
     });
 
     it('should return original state if donor not found', () => {
       const state = createMockState();
-      const result = meetingTimerService.donateTime(state, 'non-existent', 'participant-1', 10);
+      const result = meetingTimerService.donateTime(state, 'non-existent');
       
       expect(result).toBe(state);
     });
 
-    it('should return original state if recipient not found', () => {
-      const state = createMockState();
-      const result = meetingTimerService.donateTime(state, 'participant-2', 'non-existent', 10);
+    it('should return original state if no current speaker', () => {
+      const state = createMockState({
+        currentSpeakerId: null
+      });
+      const result = meetingTimerService.donateTime(state, 'participant-2');
       
       expect(result).toBe(state);
     });
 
     it('should return original state if donor cannot donate', () => {
-      const state = createMockState();
-      // Active participants cannot donate
-      const result = meetingTimerService.donateTime(state, 'participant-1', 'participant-2', 10);
+      const baseState = createMockState();
+      const state = createMockState({
+        participants: baseState.participants.map(p => 
+          p.id === 'participant-2' ? { ...p, remainingTimeSeconds: 5 } : p
+        )
+      });
       
-      expect(result).toBe(state);
-    });
-
-    it('should return original state if donation amount is invalid', () => {
-      const state = createMockState();
-      // Negative amount
-      const result = meetingTimerService.donateTime(state, 'participant-2', 'participant-1', -5);
-      
-      expect(result).toBe(state);
-    });
-
-    it('should return original state if donation exceeds max allowed', () => {
-      const state = createMockState();
-      // Max for pending participant is 10% of allocated time (12 seconds)
-      const result = meetingTimerService.donateTime(state, 'participant-2', 'participant-1', 20);
+      const result = meetingTimerService.donateTime(state, 'participant-2');
       
       expect(result).toBe(state);
     });
@@ -244,18 +167,18 @@ describe('meetingTimerService', () => {
       const state = createMockState();
       const result = meetingTimerService.moveToNextParticipant(state);
       
-      // Current speaker should be marked as FINISHED
+      // Previous speaker should be marked as finished
       const previousSpeaker = result.participants.find(p => p.id === 'participant-1');
       expect(previousSpeaker?.status).toBe(ParticipantStatus.FINISHED);
       expect(previousSpeaker?.hasSpeakerRole).toBe(false);
       
-      // Next speaker should be the one from the queue
+      // Next speaker should be active
       expect(result.currentSpeakerId).toBe('participant-2');
       const nextSpeaker = result.participants.find(p => p.id === 'participant-2');
       expect(nextSpeaker?.status).toBe(ParticipantStatus.ACTIVE);
       expect(nextSpeaker?.hasSpeakerRole).toBe(true);
       
-      // Speaker queue should be updated (participant removed from queue)
+      // Speaker queue should be updated
       expect(result.speakerQueue.length).toBe(0);
       
       // Timer should be reset to the new speaker's total available time
@@ -273,10 +196,9 @@ describe('meetingTimerService', () => {
             allocatedTimeSeconds: 120,
             remainingTimeSeconds: 90,
             usedTimeSeconds: 30,
-            donatedTimeSeconds: 0,
-            receivedTimeSeconds: 0,
             status: ParticipantStatus.ACTIVE,
-            hasSpeakerRole: true
+            hasSpeakerRole: true,
+            type: 'interactive'
           },
           {
             id: 'participant-2',
@@ -285,10 +207,20 @@ describe('meetingTimerService', () => {
             allocatedTimeSeconds: 120,
             remainingTimeSeconds: 0,
             usedTimeSeconds: 120,
-            donatedTimeSeconds: 0,
-            receivedTimeSeconds: 0,
             status: ParticipantStatus.FINISHED,
-            hasSpeakerRole: false
+            hasSpeakerRole: false,
+            type: 'viewOnly'
+          },
+          {
+            id: 'participant-3',
+            name: 'Charlie',
+            included: true,
+            allocatedTimeSeconds: 120,
+            remainingTimeSeconds: 0,
+            usedTimeSeconds: 120,
+            status: ParticipantStatus.FINISHED,
+            hasSpeakerRole: false,
+            type: 'viewOnly'
           }
         ],
         speakerQueue: []
@@ -296,9 +228,10 @@ describe('meetingTimerService', () => {
       
       const result = meetingTimerService.moveToNextParticipant(state);
       
-      // Current speaker should be marked as FINISHED
+      // Previous speaker should be marked as finished
       const previousSpeaker = result.participants.find(p => p.id === 'participant-1');
       expect(previousSpeaker?.status).toBe(ParticipantStatus.FINISHED);
+      expect(previousSpeaker?.hasSpeakerRole).toBe(false);
       
       // No current speaker
       expect(result.currentSpeakerId).toBeNull();
@@ -318,7 +251,7 @@ describe('meetingTimerService', () => {
       expect(skippedParticipant?.status).toBe(ParticipantStatus.SKIPPED);
       expect(skippedParticipant?.hasSpeakerRole).toBe(false);
       
-      // Should be removed from queue
+      // Speaker queue should be updated
       expect(result.speakerQueue.length).toBe(0);
     });
 
@@ -326,11 +259,12 @@ describe('meetingTimerService', () => {
       const state = createMockState();
       const result = meetingTimerService.skipParticipant(state, 'participant-1');
       
-      // Current speaker should be marked as skipped
+      // Skipped speaker should be marked as finished
       const skippedSpeaker = result.participants.find(p => p.id === 'participant-1');
       expect(skippedSpeaker?.status).toBe(ParticipantStatus.FINISHED);
+      expect(skippedSpeaker?.hasSpeakerRole).toBe(false);
       
-      // Next speaker should be activated
+      // Next speaker should be active
       expect(result.currentSpeakerId).toBe('participant-2');
       const nextSpeaker = result.participants.find(p => p.id === 'participant-2');
       expect(nextSpeaker?.status).toBe(ParticipantStatus.ACTIVE);
@@ -349,7 +283,7 @@ describe('meetingTimerService', () => {
       const state = createMockState({
         timerConfig: {
           mode: 'fixed',
-          totalDurationMinutes: 2,
+          durationSeconds: 120,
           allowExtension: false
         },
         currentSpeakerId: null,
@@ -385,10 +319,9 @@ describe('meetingTimerService', () => {
             allocatedTimeSeconds: 120,
             remainingTimeSeconds: 1,
             usedTimeSeconds: 119,
-            donatedTimeSeconds: 0,
-            receivedTimeSeconds: 0,
             status: ParticipantStatus.ACTIVE,
-            hasSpeakerRole: true
+            hasSpeakerRole: true,
+            type: 'interactive'
           },
           {
             id: 'participant-2',
@@ -397,10 +330,9 @@ describe('meetingTimerService', () => {
             allocatedTimeSeconds: 120,
             remainingTimeSeconds: 120,
             usedTimeSeconds: 0,
-            donatedTimeSeconds: 0,
-            receivedTimeSeconds: 0,
             status: ParticipantStatus.PENDING,
-            hasSpeakerRole: false
+            hasSpeakerRole: false,
+            type: 'viewOnly'
           }
         ]
       });
@@ -421,7 +353,7 @@ describe('meetingTimerService', () => {
       const state = createMockState({
         timerConfig: {
           mode: 'fixed',
-          totalDurationMinutes: 2,
+          durationSeconds: 120,
           allowExtension: false
         },
         currentSpeakerId: null,

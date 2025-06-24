@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import StoryTimeManager from './StoryTimeManager';
-import { useMeeting, ParticipantStatus } from '../contexts/MeetingContext';
+import { useMeeting } from '../contexts/MeetingContext';
 import type { Participant } from '../contexts/MeetingContext';
 
 // Mock dependencies
@@ -25,10 +25,9 @@ describe('StoryTimeManager', () => {
       allocatedTimeSeconds: 120,
       remainingTimeSeconds: 120,
       usedTimeSeconds: 0,
-      donatedTimeSeconds: 0,
-      receivedTimeSeconds: 0,
-      status: ParticipantStatus.PENDING,
-      hasSpeakerRole: false
+      status: 'PENDING',
+      hasSpeakerRole: false,
+      type: 'viewOnly'
     },
     { 
       id: '2',
@@ -37,10 +36,9 @@ describe('StoryTimeManager', () => {
       allocatedTimeSeconds: 120,
       remainingTimeSeconds: 120,
       usedTimeSeconds: 0,
-      donatedTimeSeconds: 0,
-      receivedTimeSeconds: 0,
-      status: ParticipantStatus.PENDING,
-      hasSpeakerRole: false
+      status: 'PENDING',
+      hasSpeakerRole: false,
+      type: 'viewOnly'
     },
     { 
       id: '3',
@@ -49,10 +47,9 @@ describe('StoryTimeManager', () => {
       allocatedTimeSeconds: 120,
       remainingTimeSeconds: 120,
       usedTimeSeconds: 0,
-      donatedTimeSeconds: 0,
-      receivedTimeSeconds: 0,
-      status: ParticipantStatus.PENDING,
-      hasSpeakerRole: false
+      status: 'PENDING',
+      hasSpeakerRole: false,
+      type: 'viewOnly'
     },
   ];
 

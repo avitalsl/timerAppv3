@@ -1,95 +1,58 @@
 import { ParticipantStatus } from '../contexts/MeetingContext';
-import type { Participant, TimeDonation, MeetingState } from '../contexts/MeetingContext';
+import type { Participant, MeetingState } from '../contexts/MeetingContext';
 
 /**
- * Pure function to calculate the total available time for a participant
- * This includes their initially allocated time plus any received donations
- * minus any time they have donated.
- */
-export function calculateTotalAvailableTime(participant: Participant): number {
-  return participant.allocatedTimeSeconds + participant.receivedTimeSeconds - participant.donatedTimeSeconds;
-}
-
-/**
- * Pure function to calculate the current remaining time for a participant
- * This is their total available time minus the time they've already used.
- */
-export function calculateRemainingTime(participant: Participant): number {
-  return calculateTotalAvailableTime(participant) - participant.usedTimeSeconds;
-}
-
-/**
- * Determines if a participant can donate time and how much
- * Rules:
- * - PENDING participants can donate up to 10% of their allocated time
- * - FINISHED or SKIPPED participants can donate all their remaining time
- * - ACTIVE participants cannot donate time
+ * Determines if a participant can donate time
+ * Rule: A participant can donate if they have more than 10 seconds remaining
  */
 export function canDonateTime(participant: Participant): { canDonate: boolean; maxAmount: number } {
-  if (participant.status === ParticipantStatus.PENDING) {
-    return { canDonate: true, maxAmount: Math.floor(participant.allocatedTimeSeconds * 0.1) };
-  }
-  
-  if (participant.status === ParticipantStatus.FINISHED || participant.status === ParticipantStatus.SKIPPED) {
-    // For FINISHED or SKIPPED participants, they can donate their remaining time
-    // which is calculated as: allocatedTimeSeconds + receivedTimeSeconds - donatedTimeSeconds - usedTimeSeconds
-    return { canDonate: true, maxAmount: calculateRemainingTime(participant) };
-  }
-  
-  return { canDonate: false, maxAmount: 0 };
+  // Participant can donate if they have more than 10 seconds remaining
+  const canDonate = participant.remainingTimeSeconds > 10;
+  return { canDonate, maxAmount: canDonate ? 10 : 0 };
 }
 
 /**
- * Process a time donation between participants
+ * Process a time donation from a participant to the current speaker
  * Returns the updated state with the donation applied or the original state
  * with an error if the donation could not be processed
  */
 export function donateTime(
   state: MeetingState,
-  fromParticipantId: string,
-  toParticipantId: string,
-  amountSeconds: number
+  fromParticipantId: string
 ): MeetingState {
-  // Find the participants
-  const donor = state.participants.find(p => p.id === fromParticipantId);
-  const recipient = state.participants.find(p => p.id === toParticipantId);
+  // Fixed donation amount
+  const DONATION_AMOUNT = 10; // 10 seconds
   
-  // Validate participants exist
+  // Find the donor participant
+  const donor = state.participants.find(p => p.id === fromParticipantId);
+  
+  // Validate donor exists
   if (!donor) {
     console.error("Donor participant not found");
     return state;
   }
+  
+  // Check if there is a current speaker
+  if (!state.currentSpeakerId) {
+    console.error("No active speaker to receive donation");
+    return state;
+  }
+  
+  // Find the recipient (current speaker)
+  const recipient = state.participants.find(p => p.id === state.currentSpeakerId);
+  
+  // Validate recipient exists
   if (!recipient) {
     console.error("Recipient participant not found");
     return state;
   }
-
+  
   // Check if donor can donate
-  const { canDonate, maxAmount } = canDonateTime(donor);
+  const { canDonate } = canDonateTime(donor);
   if (!canDonate) {
     console.error("Participant cannot donate time at this moment");
     return state;
   }
-  
-  // Validate donation amount
-  if (amountSeconds <= 0) {
-    console.error("Donation amount must be greater than 0");
-    return state;
-  }
-  
-  if (amountSeconds > maxAmount) {
-    console.error(`Maximum donation allowed is ${maxAmount} seconds`);
-    return state;
-  }
-  
-  // Create the donation object
-  const donation: TimeDonation = {
-    id: Math.random().toString(36).substr(2, 9), // Simple random ID generation
-    fromParticipantId: donor.id,
-    toParticipantId: recipient.id,
-    amountSeconds,
-    timestamp: Date.now(),
-  };
   
   // Find the indices of both participants
   const donorIndex = state.participants.findIndex(p => p.id === donor.id);
@@ -99,24 +62,23 @@ export function donateTime(
   const updatedParticipants = [...state.participants];
   const updatedDonor = {
     ...donor,
-    donatedTimeSeconds: donor.donatedTimeSeconds + amountSeconds
+    remainingTimeSeconds: donor.remainingTimeSeconds - DONATION_AMOUNT
   };
   
   const updatedRecipient = {
     ...recipient,
-    receivedTimeSeconds: recipient.receivedTimeSeconds + amountSeconds,
-    remainingTimeSeconds: recipient.remainingTimeSeconds + amountSeconds
+    remainingTimeSeconds: recipient.remainingTimeSeconds + DONATION_AMOUNT
   };
   
   // Update the participants in the array
   updatedParticipants[donorIndex] = updatedDonor;
   updatedParticipants[recipientIndex] = updatedRecipient;
   
-  // Return updated state with the donation recorded
+  // Return updated state
   return {
     ...state,
     participants: updatedParticipants,
-    timeDonations: [...state.timeDonations, donation]
+    currentTimeSeconds: state.currentTimeSeconds + DONATION_AMOUNT // Update the current timer as well
   };
 }
 
@@ -170,7 +132,7 @@ export function moveToNextParticipant(state: MeetingState): MeetingState {
     participants: updatedParticipants,
     currentSpeakerId: nextPendingParticipant.id,
     timerStatus: 'running',
-    currentTimeSeconds: calculateTotalAvailableTime(nextPendingParticipant),
+    currentTimeSeconds: nextPendingParticipant.remainingTimeSeconds,
     speakerQueue: updatedQueue
   };
 }
@@ -291,8 +253,6 @@ export function processTick(state: MeetingState, elapsedSeconds: number = 1): Me
 
 // Export all functions as part of a service object
 export const meetingTimerService = {
-  calculateTotalAvailableTime,
-  calculateRemainingTime,
   canDonateTime,
   donateTime,
   moveToNextParticipant,

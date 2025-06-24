@@ -140,7 +140,7 @@ const SetupScreen = () => {
             <div className="flex items-center">
               <LayoutIcon className="h-5 w-5 text-gray-500 mr-2" />
               <h3 className="text-lg font-medium text-gray-700">
-                Layout Configuration
+                Meeting View Setting
               </h3>
             </div>
             <button
@@ -149,7 +149,7 @@ const SetupScreen = () => {
               data-testid="reset-layout-button"
             >
               <RefreshCwIcon className="h-4 w-4 mr-1" />
-              Reset Layout
+              Reset View
             </button>
           </div>
           

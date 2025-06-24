@@ -3,7 +3,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ParticipantTimeCard from './ParticipantTimeCard';
 import { ParticipantStatus } from '../../contexts/MeetingContext';
 import { useUserContext } from '../../contexts/UserContext';
+import { useMeeting } from '../../contexts/MeetingContext';
 import type { Participant } from '../../contexts/MeetingContext';
+import { meetingTimerService } from '../../services/meetingTimerService';
 
 // Mock the Lucide icons
 vi.mock('lucide-react', () => ({
@@ -16,6 +18,17 @@ vi.mock('lucide-react', () => ({
 // Mock useUserContext
 vi.mock('../../contexts/UserContext', () => ({
   useUserContext: vi.fn()
+}));
+
+// Mock useMeeting
+vi.mock('../../contexts/MeetingContext', () => ({
+  useMeeting: vi.fn(),
+  ParticipantStatus: {
+    PENDING: 'PENDING',
+    ACTIVE: 'ACTIVE',
+    FINISHED: 'FINISHED',
+    SKIPPED: 'SKIPPED'
+  }
 }));
 
 // Mock the meetingTimerService
@@ -34,10 +47,9 @@ describe('ParticipantTimeCard', () => {
     allocatedTimeSeconds: 120,
     remainingTimeSeconds: 90,
     usedTimeSeconds: 30,
-    donatedTimeSeconds: 10,
-    receivedTimeSeconds: 20,
     status: ParticipantStatus.ACTIVE,
-    hasSpeakerRole: true
+    hasSpeakerRole: true,
+    type: 'interactive'
   };
 
   // Mock handlers
@@ -46,6 +58,13 @@ describe('ParticipantTimeCard', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Default mock for useMeeting
+    (useMeeting as any).mockReturnValue({
+      state: {
+        currentSpeakerId: 'speaker-id'
+      }
+    });
   });
 
   it('renders participant information correctly', () => {
@@ -69,16 +88,20 @@ describe('ParticipantTimeCard', () => {
     expect(screen.getByText('02:00')).toBeInTheDocument(); // Allocated time
     expect(screen.getByText('01:30')).toBeInTheDocument(); // Remaining time
     expect(screen.getByText('00:30')).toBeInTheDocument(); // Used time
-    
-    // Check net donated time display
-    expect(screen.getByText('+00:10')).toBeInTheDocument(); // Net donated (received - donated)
   });
 
-  it('shows action buttons for interactive users', () => {
+  it('shows donate button for current user when they are interactive and not the speaker', () => {
     // Mock as interactive user
     (useUserContext as any).mockReturnValue({
       isInteractiveUser: () => true,
-      currentUser: { id: 'other-id', name: 'Current User' }
+      currentUser: { id: 'test-id', name: 'Test User' }
+    });
+
+    // Mock current speaker as different from current user
+    (useMeeting as any).mockReturnValue({
+      state: {
+        currentSpeakerId: 'speaker-id'
+      }
     });
 
     render(
@@ -90,12 +113,41 @@ describe('ParticipantTimeCard', () => {
       />
     );
 
-    // Check that action buttons are displayed
-    expect(screen.getByTestId(`donate-btn-${mockParticipant.id}`)).toBeInTheDocument();
-    expect(screen.getByText('Donate')).toBeInTheDocument();
+    // Check that donate button is displayed
+    const donateButton = screen.getByTestId(`donate-btn-${mockParticipant.id}`);
+    expect(donateButton).toBeInTheDocument();
+    expect(screen.getByText('Donate 10s')).toBeInTheDocument();
     
-    // Skip button should not be visible for ACTIVE participants
-    expect(screen.queryByText('Skip')).not.toBeInTheDocument();
+    // Check tooltip text
+    expect(donateButton).toHaveAttribute('title', 'Give 10 seconds to the speaker');
+  });
+
+  it('hides donate button when user is the current speaker', () => {
+    // Mock as interactive user
+    (useUserContext as any).mockReturnValue({
+      isInteractiveUser: () => true,
+      currentUser: { id: 'test-id', name: 'Test User' }
+    });
+
+    // Mock current speaker as the same as current user
+    (useMeeting as any).mockReturnValue({
+      state: {
+        currentSpeakerId: 'test-id'
+      }
+    });
+
+    render(
+      <ParticipantTimeCard
+        participant={mockParticipant}
+        isCurrentSpeaker={true}
+        onDonateClick={mockDonateClick}
+        onSkipClick={mockSkipClick}
+      />
+    );
+
+    // Check that donate button is not displayed
+    expect(screen.queryByTestId(`donate-btn-${mockParticipant.id}`)).not.toBeInTheDocument();
+    expect(screen.queryByText('Donate 10s')).not.toBeInTheDocument();
   });
 
   it('shows skip button for pending participants when user is interactive', () => {
@@ -119,10 +171,8 @@ describe('ParticipantTimeCard', () => {
       />
     );
 
-    // Check that both donate and skip buttons are displayed
-    expect(screen.getByTestId(`donate-btn-${mockParticipant.id}`)).toBeInTheDocument();
+    // Check that skip button is displayed
     expect(screen.getByTestId(`skip-btn-${mockParticipant.id}`)).toBeInTheDocument();
-    expect(screen.getByText('Donate')).toBeInTheDocument();
     expect(screen.getByText('Skip')).toBeInTheDocument();
   });
 
@@ -144,7 +194,7 @@ describe('ParticipantTimeCard', () => {
 
     // Check that action buttons are not displayed
     expect(screen.queryByTestId(`donate-btn-${mockParticipant.id}`)).not.toBeInTheDocument();
-    expect(screen.queryByText('Donate')).not.toBeInTheDocument();
+    expect(screen.queryByText('Donate 10s')).not.toBeInTheDocument();
     expect(screen.queryByText('Skip')).not.toBeInTheDocument();
     
     // Check that view-only message is displayed
@@ -160,7 +210,8 @@ describe('ParticipantTimeCard', () => {
       name: 'Incomplete User',
       included: true,
       status: ParticipantStatus.PENDING,
-      hasSpeakerRole: false
+      hasSpeakerRole: false,
+      type: 'viewOnly'
       // Missing time properties: allocatedTimeSeconds, remainingTimeSeconds, etc.
     } as Participant;
 
@@ -196,35 +247,36 @@ describe('ParticipantTimeCard with disabled donation', () => {
     name: 'Test User',
     included: true,
     allocatedTimeSeconds: 120,
-    remainingTimeSeconds: 90,
+    remainingTimeSeconds: 5, // Not enough time to donate
     usedTimeSeconds: 30,
-    donatedTimeSeconds: 10,
-    receivedTimeSeconds: 20,
     status: ParticipantStatus.ACTIVE,
-    hasSpeakerRole: true
+    hasSpeakerRole: true,
+    type: 'interactive'
   };
 
   // Mock handlers
   const mockDonateClick = vi.fn();
   const mockSkipClick = vi.fn();
 
-  // For this suite, we'll mock canDonateTime to return false
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Mock useMeeting
+    (useMeeting as any).mockReturnValue({
+      state: {
+        currentSpeakerId: 'speaker-id'
+      }
+    });
+    
+    // Mock canDonateTime to return false for this test
+    (meetingTimerService.canDonateTime as any).mockReturnValue({ canDonate: false, maxAmount: 0 });
   });
 
-  it('disables donate button when donation is not possible', () => {
-    // Mock canDonateTime to return false for this test
-    vi.mock('../../services/meetingTimerService', () => ({
-      meetingTimerService: {
-        canDonateTime: vi.fn().mockReturnValue({ canDonate: false, maxAmount: 0 })
-      }
-    }));
-    
-    // Mock as interactive user
+  it('disables donate button when user has insufficient time', () => {
+    // Mock as interactive user who is the owner of this card
     (useUserContext as any).mockReturnValue({
       isInteractiveUser: () => true,
-      currentUser: { id: 'other-id', name: 'Current User' }
+      currentUser: { id: 'test-id', name: 'Test User' }
     });
 
     render(
@@ -241,5 +293,7 @@ describe('ParticipantTimeCard with disabled donation', () => {
     expect(donateButton).toBeInTheDocument();
     expect(donateButton).toBeDisabled();
     expect(donateButton).toHaveClass('cursor-not-allowed');
+    expect(donateButton).toHaveClass('bg-gray-100');
+    expect(donateButton).toHaveClass('text-gray-400');
   });
 });

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { PlayIcon, PauseIcon, RefreshCwIcon, SkipForwardIcon, PlusIcon } from 'lucide-react';
 import { useMeeting } from '../../contexts/MeetingContext';
 
@@ -12,6 +12,28 @@ const TimerWidget: React.FC = () => {
     participants,
     currentParticipantIndex,
   } = state;
+
+  // State for donation animation
+  const [showDonationAnimation, setShowDonationAnimation] = useState(false);
+  const [prevTimeSeconds, setPrevTimeSeconds] = useState(currentTimeSeconds);
+
+  // Effect to detect time donations and trigger animation
+  useEffect(() => {
+    // If the current time has increased (not decreased), it might be a donation
+    if (currentTimeSeconds > prevTimeSeconds && timerStatus === 'running') {
+      setShowDonationAnimation(true);
+      
+      // Hide the animation after 2 seconds
+      const timer = setTimeout(() => {
+        setShowDonationAnimation(false);
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+    
+    // Update the previous time value
+    setPrevTimeSeconds(currentTimeSeconds);
+  }, [currentTimeSeconds, prevTimeSeconds, timerStatus]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -129,6 +151,18 @@ const TimerWidget: React.FC = () => {
             {formatTime(currentTimeSeconds)}
           </text>
         </svg>
+        
+        {/* Donation animation */}
+        {showDonationAnimation && (
+          <div 
+            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            data-testid="donation-animation"
+          >
+            <div className="text-2xl font-bold text-amber-500 animate-bounce-fade">
+              +10s
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-center space-x-4 mt-8" data-testid="timer-controls">

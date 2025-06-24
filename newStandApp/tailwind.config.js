@@ -19,6 +19,18 @@ export default {
           'sans-serif',
         ],
       },
+      animation: {
+        'bounce-fade': 'bounce-fade 2s ease-in-out',
+      },
+      keyframes: {
+        'bounce-fade': {
+          '0%, 100%': { transform: 'translateY(0)', opacity: 0 },
+          '20%': { transform: 'translateY(-20px)', opacity: 1 },
+          '40%': { transform: 'translateY(-10px)', opacity: 1 },
+          '60%': { transform: 'translateY(-5px)', opacity: 0.8 },
+          '80%': { transform: 'translateY(0)', opacity: 0.5 },
+        },
+      },
       colors: {
         primary: {
           

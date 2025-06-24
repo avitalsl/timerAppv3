@@ -33,10 +33,9 @@ export const participantsStorageService = {
                    'allocatedTimeSeconds' in item &&
                    'remainingTimeSeconds' in item &&
                    'usedTimeSeconds' in item &&
-                   'donatedTimeSeconds' in item &&
-                   'receivedTimeSeconds' in item &&
                    'status' in item &&
-                   'hasSpeakerRole' in item
+                   'hasSpeakerRole' in item &&
+                   'type' in item
                  );
         },
         migrate: (legacyData: any): Participant[] => {
@@ -52,11 +51,13 @@ export const participantsStorageService = {
                 allocatedTimeSeconds: typeof item.allocatedTimeSeconds === 'number' ? item.allocatedTimeSeconds : 0,
                 remainingTimeSeconds: typeof item.remainingTimeSeconds === 'number' ? item.remainingTimeSeconds : 0,
                 usedTimeSeconds: typeof item.usedTimeSeconds === 'number' ? item.usedTimeSeconds : 0,
-                donatedTimeSeconds: typeof item.donatedTimeSeconds === 'number' ? item.donatedTimeSeconds : 0,
-                receivedTimeSeconds: typeof item.receivedTimeSeconds === 'number' ? item.receivedTimeSeconds : 0,
                 // Initialize status fields
                 status: item.status !== undefined ? item.status : ParticipantStatus.PENDING,
-                hasSpeakerRole: typeof item.hasSpeakerRole === 'boolean' ? item.hasSpeakerRole : false
+                hasSpeakerRole: typeof item.hasSpeakerRole === 'boolean' ? item.hasSpeakerRole : false,
+                // Add new fields with defaults
+                type: item.type || 'viewOnly',
+                email: item.email || undefined,
+                userId: item.userId || undefined
               };
               return participant;
             }).filter(p => p.name); 

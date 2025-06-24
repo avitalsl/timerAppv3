@@ -3,11 +3,12 @@ import { User, Gift, SkipForward, Lock } from 'lucide-react'; // Icons for the c
 import { type Participant, ParticipantStatus } from '../../contexts/MeetingContext';
 import { meetingTimerService } from '../../services/meetingTimerService';
 import { useUserContext } from '../../contexts/UserContext';
+import { useMeeting } from '../../contexts/MeetingContext';
 
 interface ParticipantTimeCardProps {
   participant: Participant;
   isCurrentSpeaker: boolean;
-  onDonateClick: (participantId: string) => void;
+  onDonateClick: () => void;
   onSkipClick?: (participantId: string) => void;
   /**
    * Optional override for current user ID - used for testing
@@ -28,6 +29,7 @@ const ParticipantTimeCard: React.FC<ParticipantTimeCardProps> = ({
 }) => {
   // Get user context to check permissions
   const { isInteractiveUser, currentUser } = useUserContext();
+  const { state } = useMeeting();
   
   // Determine if the current user can interact with controls
   const canInteract = isInteractiveUser(currentUserId);
@@ -35,7 +37,16 @@ const ParticipantTimeCard: React.FC<ParticipantTimeCardProps> = ({
   // Check if this card represents the current user
   const isCurrentUserCard = currentUser?.id === participant.id;
   // Check if donation is possible for this participant
-  const { canDonate, maxAmount } = meetingTimerService.canDonateTime(participant);
+  const { canDonate } = meetingTimerService.canDonateTime(participant);
+  
+  // Determine if there is an active speaker (for donation button visibility)
+  const hasActiveSpeaker = !!state.currentSpeakerId;
+  // Check if this participant is the active speaker
+  const isActiveSpeaker = participant.id === state.currentSpeakerId;
+  
+  // Show donate button only for interactive users on their own card
+  // We'll show it disabled if they can't donate (not enough time)
+  const showDonateButton = isCurrentUserCard && participant.type === 'interactive' && hasActiveSpeaker && !isActiveSpeaker;
   
   // Format seconds to display as mm:ss
   const formatTime = (seconds: number): string => {
@@ -88,25 +99,10 @@ const ParticipantTimeCard: React.FC<ParticipantTimeCardProps> = ({
       </div>
       
       {/* Time information */}
-      <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+      <div className="flex justify-between text-xs mb-3">
         <div className="flex flex-col">
-          <span className="text-gray-500">Allocated</span>
-          <span className="font-medium">{formatTime(participant.allocatedTimeSeconds)}</span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-gray-500">Remaining</span>
+          <span className="text-gray-500">Time</span>
           <span className="font-medium">{formatTime(participant.remainingTimeSeconds)}</span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-gray-500">Used</span>
-          <span className="font-medium">{formatTime(participant.usedTimeSeconds)}</span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-gray-500">Net Donated</span>
-          <span className={`font-medium ${participant.donatedTimeSeconds > participant.receivedTimeSeconds ? 'text-amber-600' : 'text-emerald-600'}`}>
-            {participant.donatedTimeSeconds > participant.receivedTimeSeconds ? '-' : '+'}
-            {formatTime(Math.abs(participant.donatedTimeSeconds - participant.receivedTimeSeconds))}
-          </span>
         </div>
       </div>
       
@@ -114,16 +110,22 @@ const ParticipantTimeCard: React.FC<ParticipantTimeCardProps> = ({
       <div className="flex justify-between mt-2">
         {canInteract ? (
           <>
-            <button 
-              className={`px-2 py-1 rounded text-xs flex items-center ${canDonate ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
-              onClick={() => canDonate && onDonateClick(participant.id)}
-              disabled={!canDonate}
-              title={canDonate ? `Can donate up to ${maxAmount} seconds` : "Cannot donate time"}
-              data-testid={`donate-btn-${participant.id}`}
-            >
-              <Gift className="w-3 h-3 mr-1" />
-              Donate
-            </button>
+            {showDonateButton && (
+              <button 
+                className={`px-2 py-1 rounded text-xs flex items-center ${
+                  canDonate 
+                    ? "bg-amber-100 text-amber-800 hover:bg-amber-200" 
+                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                }`}
+                onClick={canDonate ? onDonateClick : undefined}
+                title="Give 10 seconds to the speaker"
+                disabled={!canDonate}
+                data-testid={`donate-btn-${participant.id}`}
+              >
+                <Gift className="w-3 h-3 mr-1" />
+                Donate 10s
+              </button>
+            )}
             
             {participant.status === ParticipantStatus.PENDING && onSkipClick && (
               <button 

@@ -21,15 +21,6 @@ export const ParticipantStatus = {
   SKIPPED: 'SKIPPED',    // Skipped by moderator
 } as const;
 
-// Define time donation interface
-export interface TimeDonation {
-  id: string;           // Unique identifier for the donation
-  fromParticipantId: string;  // ID of the participant giving time (renamed from donorId)
-  toParticipantId: string;    // ID of the participant receiving time (renamed from recipientId)
-  amountSeconds: number; // Amount of time donated in seconds
-  timestamp: number;     // When the donation was made
-}
-
 export interface Participant {
   id: string;            // Unique identifier for the participant
   name: string;
@@ -38,15 +29,15 @@ export interface Participant {
   allocatedTimeSeconds: number;    // Initially allocated time
   remainingTimeSeconds: number;    // Current remaining time
   usedTimeSeconds: number;         // Total time used so far
-  // Donation tracking
-  donatedTimeSeconds: number;      // Total time donated to others
-  receivedTimeSeconds: number;     // Total time received from others
   // Status fields
   status: ParticipantStatus;       // Current speaking status
   hasSpeakerRole: boolean;         // Whether this participant has the speaker role
+  // User type and authentication fields
+  type: 'interactive' | 'viewOnly'; // Type of participant
+  email?: string;                  // Email address for interactive participants
+  userId?: string;                 // User ID for interactive participants
 }
 
-// Raw config loaded from localStorage (TimerSetup.tsx)
 export interface StoredTimerConfig {
   mode: 'fixed' | 'per-participant';
   totalDurationMinutes?: number;
@@ -79,7 +70,6 @@ export interface MeetingState {
   participantListVisibilityMode: 'all_visible' | 'focus_speaker';
   // New fields for time donation feature
   currentSpeakerId: string | null; // ID of the current speaker (more robust than index)
-  timeDonations: TimeDonation[];   // Track all donations in the meeting
   speakerQueue: string[];          // IDs of participants in the queue
   meetingStatus: 'NotStarted' | 'InProgress' | 'Finished'; // Overall meeting status
 }
@@ -97,7 +87,6 @@ const initialState: MeetingState = {
   participantListVisibilityMode: 'all_visible',
   // Initialize new fields
   currentSpeakerId: null,
-  timeDonations: [],
   speakerQueue: [],
   meetingStatus: 'NotStarted'
 };
@@ -112,7 +101,7 @@ export type MeetingAction =
   | { type: 'NEXT_PARTICIPANT' }
   | { type: 'SET_NEXT_SPEAKER'; payload: { participantId: string } } // New action to set a specific speaker
   | { type: 'SKIP_PARTICIPANT'; payload: { participantId: string } } // New action to skip a participant
-  | { type: 'DONATE_TIME'; payload: { fromParticipantId: string; toParticipantId: string; amountSeconds: number } } // New action for time donation
+  | { type: 'DONATE_TIME'; payload: { fromParticipantId: string } } // New action for time donation
   | { type: 'CUSTOMIZE_PARTICIPANT_TIME'; payload: { participantId: string; timeSeconds: number } } // New action to customize participant time
   | { type: 'ADD_TIME' }
   | { type: 'SET_TIMER_STATUS'; payload: MeetingState['timerStatus'] }
@@ -173,7 +162,6 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
         participantListVisibilityMode: participantListVisibilityMode ?? 'all_visible',
         // Initialize new fields
         currentSpeakerId: null,
-        timeDonations: [],
         speakerQueue: [],
         meetingStatus: 'InProgress'
       };
@@ -239,9 +227,7 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
       // Since donateTime now returns the complete updated state or original state on failure
       return meetingTimerService.donateTime(
         state,
-        action.payload.fromParticipantId,
-        action.payload.toParticipantId,
-        action.payload.amountSeconds
+        action.payload.fromParticipantId
       );
     case 'CUSTOMIZE_PARTICIPANT_TIME':
       // Update the participant's time

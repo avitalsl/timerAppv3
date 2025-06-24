@@ -1,7 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { MeetingProvider, useMeeting, type StoredTimerConfig, type KickoffSetting, type Participant, ParticipantStatus } from './MeetingContext';
-import React from 'react';
 
 // A test component to interact with the context
 const TestComponent = () => {
@@ -55,10 +54,9 @@ const TestComponent = () => {
       allocatedTimeSeconds: 30,
       remainingTimeSeconds: 30,
       usedTimeSeconds: 0,
-      donatedTimeSeconds: 0,
-      receivedTimeSeconds: 0,
       status: ParticipantStatus.PENDING,
-      hasSpeakerRole: false
+      hasSpeakerRole: false,
+      type: 'viewOnly' // Add the required type field
     },
     { 
       id: '2',
@@ -67,10 +65,9 @@ const TestComponent = () => {
       allocatedTimeSeconds: 30,
       remainingTimeSeconds: 30,
       usedTimeSeconds: 0,
-      donatedTimeSeconds: 0,
-      receivedTimeSeconds: 0,
       status: ParticipantStatus.PENDING,
-      hasSpeakerRole: false
+      hasSpeakerRole: false,
+      type: 'viewOnly' // Add the required type field
     },
   ];
 

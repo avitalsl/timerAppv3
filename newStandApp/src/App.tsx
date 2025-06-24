@@ -10,6 +10,7 @@ import SetupScreen from './pages/SetupScreen'
 import TimerSetup from './pages/TimerSetup'
 import Participants from './pages/Participants'
 import LinksSetup from './pages/LinksSetup'
+import ChecklistTime from './pages/ChecklistTime'
 import KickoffScreen from './components/KickoffScreen'
 import { MeetingProvider } from './contexts/MeetingContext';
 import { ComponentVisibilityProvider } from './hooks/ComponentVisibilityProvider';
@@ -28,6 +29,7 @@ function App() {
                 <Route path="meeting" element={<TimerSetup />} />
                 <Route path="participants" element={<Participants />} />
                 <Route path="links" element={<LinksSetup />} />
+                <Route path="checklist" element={<ChecklistTime />} />
                 <Route path="kickoff" element={<KickoffScreen />} />
               <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
