@@ -3,10 +3,12 @@ import { useMeeting } from '../../contexts/MeetingContext';
 import { User } from 'lucide-react'; // User icon for participants
 import ParticipantTimeCard from './ParticipantTimeCard';
 import { useUserContext } from '../../contexts/UserContext';
+import { useTimerAnimation } from '../MeetingScreen';
 
 const ParticipantListWidget: React.FC = () => {
   const { state, dispatch } = useMeeting();
   const { currentUser } = useUserContext();
+  const { triggerDonationAnimation } = useTimerAnimation();
   const {
     participants,
     currentParticipantIndex,
@@ -43,15 +45,18 @@ const ParticipantListWidget: React.FC = () => {
         fromParticipantId: currentUser.id
       }
     });
+    
+    // Trigger the donation animation in the TimerWidget
+    triggerDonationAnimation();
   };
 
   // Handle skip button click
-  const handleSkipClick = (participantId: string) => {
-    dispatch({
-      type: 'SKIP_PARTICIPANT',
-      payload: { participantId }
-    });
-  };
+  // const handleSkipClick = (participantId: string) => {
+  //   dispatch({
+  //     type: 'SKIP_PARTICIPANT',
+  //     payload: { participantId }
+  //   });
+  // };
 
   // Determine if we should apply focus styling (blurring non-speakers)
   const shouldFocusSpeaker = participantListVisibilityMode === 'focus_speaker';
@@ -74,7 +79,7 @@ const ParticipantListWidget: React.FC = () => {
                 participant={participant}
                 isCurrentSpeaker={isCurrentSpeaker}
                 onDonateClick={handleDonateClick}
-                onSkipClick={handleSkipClick}
+                // onSkipClick={handleSkipClick}
               />
             </div>
           );

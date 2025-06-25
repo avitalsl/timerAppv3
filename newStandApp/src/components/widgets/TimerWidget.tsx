@@ -1,8 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import { PlayIcon, PauseIcon, RefreshCwIcon, SkipForwardIcon, PlusIcon } from 'lucide-react';
 import { useMeeting } from '../../contexts/MeetingContext';
 
-const TimerWidget: React.FC = () => {
+// Export the ref type for TypeScript users
+export type TimerWidgetRef = {
+  triggerDonationAnimation: () => void;
+};
+
+const TimerWidget = forwardRef<TimerWidgetRef, {}>((props, ref) => {
   const { state, dispatch } = useMeeting();
   const {
     currentTimeSeconds,
@@ -15,25 +20,23 @@ const TimerWidget: React.FC = () => {
 
   // State for donation animation
   const [showDonationAnimation, setShowDonationAnimation] = useState(false);
-  const [prevTimeSeconds, setPrevTimeSeconds] = useState(currentTimeSeconds);
-
-  // Effect to detect time donations and trigger animation
-  useEffect(() => {
-    // If the current time has increased (not decreased), it might be a donation
-    if (currentTimeSeconds > prevTimeSeconds && timerStatus === 'running') {
-      setShowDonationAnimation(true);
-      
-      // Hide the animation after 2 seconds
-      const timer = setTimeout(() => {
-        setShowDonationAnimation(false);
-      }, 2000);
-      
-      return () => clearTimeout(timer);
-    }
+  
+  // Function to trigger donation animation from outside
+  const triggerDonationAnimation = () => {
+    setShowDonationAnimation(true);
     
-    // Update the previous time value
-    setPrevTimeSeconds(currentTimeSeconds);
-  }, [currentTimeSeconds, prevTimeSeconds, timerStatus]);
+    // Hide the animation after 2 seconds
+    const timer = setTimeout(() => {
+      setShowDonationAnimation(false);
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  };
+  
+  // Expose the animation trigger function to the parent component
+  useImperativeHandle(ref, () => ({
+    triggerDonationAnimation
+  }));
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -216,6 +219,6 @@ const TimerWidget: React.FC = () => {
       </div>
     </div>
   );
-};
+});
 
 export default TimerWidget;

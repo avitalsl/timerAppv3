@@ -136,6 +136,18 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
 
       const activeParticipants = participants.filter(p => p.included);
 
+      // Initialize participant statuses - first one ACTIVE, rest PENDING
+      const initializedParticipants = activeParticipants.map((participant, index) => ({
+        ...participant,
+        status: index === 0 ? ParticipantStatus.ACTIVE : ParticipantStatus.PENDING,
+        hasSpeakerRole: index === 0,
+        remainingTimeSeconds: participant.remainingTimeSeconds || durationSeconds,
+        usedTimeSeconds: 0
+      }));
+
+      // Get the first participant's ID for currentSpeakerId
+      const firstParticipantId = initializedParticipants.length > 0 ? initializedParticipants[0].id : null;
+
       // Conditionally add StoryWidget if mode is 'storyTime'
       const finalSelectedGridComponentIds = [...selectedGridComponentIds]; // Use the one from action.payload
       if (kickoffSettings?.mode === 'storyTime' && !finalSelectedGridComponentIds.includes(ComponentType.STORY)) {
@@ -154,14 +166,14 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
                                  storedTimerConfig.extensionAmountMinutes ? storedTimerConfig.extensionAmountMinutes * 60 : undefined,
         },
         kickoffSettings: kickoffSettings,
-        participants: activeParticipants,
+        participants: initializedParticipants,
         currentParticipantIndex: mode === 'per-participant' && activeParticipants.length > 0 ? 0 : null,
         currentTimeSeconds: durationSeconds,
         timerStatus: 'running',
         selectedGridComponentIds: finalSelectedGridComponentIds, // Use the potentially modified list
         participantListVisibilityMode: participantListVisibilityMode ?? 'all_visible',
         // Initialize new fields
-        currentSpeakerId: null,
+        currentSpeakerId: firstParticipantId,
         speakerQueue: [],
         meetingStatus: 'InProgress'
       };

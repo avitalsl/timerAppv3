@@ -15,6 +15,9 @@ vi.mock('./widgets/ParticipantListWidget', () => ({
 vi.mock('./widgets/StoryWidget', () => ({
   default: () => <div data-testid="mock-story-widget">Story Widget</div>,
 }));
+vi.mock('./MeetingOverScreen', () => ({
+  default: () => <div data-testid="mock-meeting-over-screen">Meeting Over Screen</div>,
+}));
 
 // Mock the placeholder widgets
 vi.mock('react', async () => {
@@ -36,9 +39,50 @@ describe('MeetingScreen', () => {
     mockUseMeeting.mockReturnValue({
       state: {
         selectedGridComponentIds: [],
+        timerStatus: 'idle',
+        meetingStatus: 'InProgress',
       },
       dispatch: vi.fn(),
     });
+  });
+
+  it('should render the MeetingOverScreen when timerStatus is finished', () => {
+    mockUseMeeting.mockReturnValue({
+      state: {
+        selectedGridComponentIds: ['participants'],
+        timerStatus: 'finished',
+        meetingStatus: 'InProgress',
+      },
+      dispatch: vi.fn(),
+    });
+    
+    render(<MeetingScreen />);
+    
+    // MeetingOverScreen should be rendered
+    expect(screen.getByTestId('mock-meeting-over-screen')).toBeInTheDocument();
+    
+    // Timer sidebar and grid should not be rendered
+    expect(screen.queryByTestId('timer-sidebar')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('meeting-content-grid')).not.toBeInTheDocument();
+  });
+
+  it('should NOT render the MeetingOverScreen when meetingStatus is Finished but timerStatus is not finished', () => {
+    mockUseMeeting.mockReturnValue({
+      state: {
+        selectedGridComponentIds: ['participants'],
+        timerStatus: 'idle',
+        meetingStatus: 'Finished',
+      },
+      dispatch: vi.fn(),
+    });
+    
+    render(<MeetingScreen />);
+    
+    // MeetingOverScreen should NOT be rendered
+    expect(screen.queryByTestId('mock-meeting-over-screen')).not.toBeInTheDocument();
+    
+    // Timer sidebar should be rendered
+    expect(screen.getByTestId('timer-sidebar')).toBeInTheDocument();
   });
 
   it('should render the timer sidebar', () => {

@@ -16,6 +16,9 @@ export function canDonateTime(participant: Participant): { canDonate: boolean; m
  * Process a time donation from a participant to the current speaker
  * Returns the updated state with the donation applied or the original state
  * with an error if the donation could not be processed
+ * 
+ * Note: Donation is always a constant (10 seconds) and automatically directed
+ * to the current speaker (no recipient selection).
  */
 export function donateTime(
   state: MeetingState,
@@ -246,6 +249,10 @@ export function processTick(state: MeetingState, elapsedSeconds: number = 1): Me
   
   // If time is up for the current speaker, move to the next one
   if (newRemainingTime <= 0) {
+    console.log('[processTick] Current speaker time is up, moving to next participant', {
+      currentSpeakerId: state.currentSpeakerId,
+      remainingTime: newRemainingTime
+    });
     return moveToNextParticipant(updatedState);
   }
   

@@ -65,7 +65,7 @@ const ParticipantTimeCard: React.FC<ParticipantTimeCardProps> = ({
   
   switch(participant.status) {
     case ParticipantStatus.ACTIVE:
-      cardClasses += " border-primary-dark bg-primary-light";
+      cardClasses += " border-primary-dark";
       statusColor = "bg-green-500";
       break;
     case ParticipantStatus.FINISHED:
@@ -82,9 +82,11 @@ const ParticipantTimeCard: React.FC<ParticipantTimeCardProps> = ({
       break;
   }
   
-  // Add highlighting for current speaker
+  // Add highlighting for current speaker or explicitly reset ring styling when not the current speaker
   if (isCurrentSpeaker) {
     cardClasses += " ring-2 ring-primary-dark";
+  } else {
+    cardClasses += " ring-0 shadow-none";
   }
 
   return (
@@ -98,13 +100,15 @@ const ParticipantTimeCard: React.FC<ParticipantTimeCardProps> = ({
         <div className={`w-3 h-3 rounded-full ${statusColor}`} title={participant.status}></div>
       </div>
       
-      {/* Time information */}
-      <div className="flex justify-between text-xs mb-3">
-        <div className="flex flex-col">
-          <span className="text-gray-500">Time</span>
-          <span className="font-medium">{formatTime(participant.remainingTimeSeconds)}</span>
+      {/* Time information - only shown for interactive participants */}
+      {participant.type === 'interactive' && (
+        <div className="flex justify-between text-xs mb-3">
+          <div className="flex flex-col">
+            <span className="text-gray-500">Time</span>
+            <span className="font-medium">{formatTime(participant.remainingTimeSeconds)}</span>
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Action buttons - only shown to interactive users */}
       <div className="flex justify-between mt-2">
