@@ -178,6 +178,9 @@ describe('participantsStorageService', () => {
       });
 
       it('should generate new ID if missing', () => {
+        // Reset the mock implementation to ensure it returns the expected value
+        vi.mocked(uuidv4).mockReturnValue('mocked-uuid');
+        
         const legacyData = [{
           // Missing id
           name: 'No ID User',
@@ -189,8 +192,19 @@ describe('participantsStorageService', () => {
           hasSpeakerRole: false
         }];
 
-        const result = migrateFn(legacyData);
+        // Mock storageService.get to return our test data
+        vi.mocked(storageService.get).mockImplementationOnce((key, defaultValue, options) => {
+          // Return the migrated data by calling the migrate function directly
+          if (options && typeof options.migrate === 'function') {
+            return options.migrate(legacyData);
+          }
+          return defaultValue;
+        });
+
+        // Call the actual service method instead of the extracted function
+        const result = participantsStorageService.getParticipants();
         
+        // Verify the ID was generated correctly
         expect(result[0].id).toBe('mocked-uuid');
         expect(uuidv4).toHaveBeenCalled();
       });

@@ -28,7 +28,6 @@ describe('useMeetingTimer', () => {
       timerStatus: 'idle',
       currentTimeSeconds: 0,
       timerConfig: null,
-      currentParticipantIndex: null,
       participants: [],
     };
     // @ts-ignore - We are providing a partial mock for useMeeting

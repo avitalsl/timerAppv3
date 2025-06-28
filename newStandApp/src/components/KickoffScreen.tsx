@@ -15,7 +15,6 @@ const KickoffScreen: React.FC = () => {
   }, []);
   
   const user = useCurrentUser();
-  console.log("👤 משתמש נוכחי:", user);
 
   // Initialize state with values from storage service
   const [kickoffMode, setKickoffMode] = useState<'getDownToBusiness' | 'storyTime'>(initialSettings.mode);
@@ -56,10 +55,7 @@ const KickoffScreen: React.FC = () => {
       storytellerName: nameToSave, // Add storytellerName to settings
     };
     
-    const success = kickoffSettingsStorageService.saveKickoffSettings(settingsToSave);
-    if (!success) {
-      console.error('[KickoffScreen] Failed to save kickoff settings');
-    }
+    kickoffSettingsStorageService.saveKickoffSettings(settingsToSave);
   }, [kickoffMode, storyOption, storyDurationSeconds, storytellerName]); // Add storytellerName to dependencies
 
   const handleKickoffModeChange = (event: React.ChangeEvent<HTMLInputElement>) => {

@@ -87,14 +87,10 @@ const SetupScreen = () => {
     // This will update the visibilityConfig internally
     toggleComponentVisibility(componentId, selected);
 
-    console.log('[SetupScreen] handleToggleComponent called:', { componentId, selected });
-    
     // Get the updated list of visible components
     const updatedVisibleComponents = selected
       ? [...selectedComponents, componentId]
       : selectedComponents.filter(id => id !== componentId);
-
-    console.log('[SetupScreen] updatedVisibleComponents (local):', updatedVisibleComponents);
     
     // Update local state for UI rendering
     setSelectedComponents(updatedVisibleComponents);

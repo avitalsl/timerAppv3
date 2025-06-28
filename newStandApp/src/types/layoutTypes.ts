@@ -6,8 +6,7 @@ export const ComponentType = {
   NOTES: 'notes',
   AGENDA: 'agenda',
   SPRINT_GOALS: 'sprintGoals',
-  CHECKLIST: 'checklist',
-  STORY: 'storyWidget'
+  CHECKLIST: 'checklist'
 } as const;
 
 // Type derived from the const object values
@@ -101,15 +100,6 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     minSize: { w: 4, h: 2 },
     renderPriority: 2, // Default priority for existing components
     isUserSelectableInSetup: true,
-  },
-  {
-    id: ComponentType.STORY,
-    type: ComponentType.STORY,
-    label: 'Story Time',
-    defaultSize: { w: 4, h: 4 }, // Example size, adjust if needed
-    minSize: { w: 4, h: 2 },   // Example size, adjust if needed
-    renderPriority: 1, // High priority to be on top
-    isUserSelectableInSetup: false, // Not selectable in ComponentPicker
   }
 ];
 

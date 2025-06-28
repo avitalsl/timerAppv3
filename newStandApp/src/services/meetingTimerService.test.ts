@@ -74,7 +74,6 @@ describe('meetingTimerService', () => {
       storyDurationSeconds: undefined,
       storytellerName: ''
     },
-    currentParticipantIndex: 0,
     selectedGridComponentIds: [],
     participantListVisibilityMode: 'all_visible',
     meetingStatus: 'InProgress',
@@ -183,6 +182,58 @@ describe('meetingTimerService', () => {
       
       // Timer should be reset to the new speaker's total available time
       expect(result.currentTimeSeconds).toBe(120);
+      expect(result.timerStatus).toBe('running');
+    });
+
+    it('should move to a storytime participant if it is next in line', () => {
+      // Create a state with a storytime participant as the next pending participant
+      const state = createMockState({
+        participants: [
+          {
+            id: 'participant-1',
+            name: 'Alice',
+            included: true,
+            allocatedTimeSeconds: 120,
+            remainingTimeSeconds: 90,
+            usedTimeSeconds: 30,
+            status: ParticipantStatus.ACTIVE,
+            hasSpeakerRole: true,
+            type: 'interactive'
+          },
+          {
+            id: 'storytime-participant',
+            name: 'Story Time',
+            included: true,
+            allocatedTimeSeconds: 180,
+            remainingTimeSeconds: 180,
+            usedTimeSeconds: 0,
+            status: ParticipantStatus.PENDING,
+            hasSpeakerRole: false,
+            type: 'storytime'
+          }
+        ],
+        speakerQueue: ['storytime-participant']
+      });
+      
+      const result = meetingTimerService.moveToNextParticipant(state);
+      
+      // Previous speaker should be marked as finished
+      const previousSpeaker = result.participants.find(p => p.id === 'participant-1');
+      expect(previousSpeaker?.status).toBe(ParticipantStatus.FINISHED);
+      expect(previousSpeaker?.hasSpeakerRole).toBe(false);
+      
+      // Storytime should be the next active speaker
+      expect(result.currentSpeakerId).toBe('storytime-participant');
+      const nextSpeaker = result.participants.find(p => p.id === 'storytime-participant');
+      expect(nextSpeaker?.status).toBe(ParticipantStatus.ACTIVE);
+      expect(nextSpeaker?.hasSpeakerRole).toBe(true);
+      expect(nextSpeaker?.type).toBe('storytime');
+      
+      // Speaker queue should be updated
+      expect(result.speakerQueue.length).toBe(0);
+      
+      // Timer should be reset to the storytime participant's total available time
+      expect(result.currentTimeSeconds).toBe(180);
       expect(result.timerStatus).toBe('running');
     });
 
@@ -395,6 +446,97 @@ describe('meetingTimerService', () => {
       const updatedSpeaker = result.participants.find(p => p.id === 'participant-1');
       expect(updatedSpeaker?.remainingTimeSeconds).toBe(85);
       expect(updatedSpeaker?.usedTimeSeconds).toBe(35);
+    });
+
+    it('should update storytime participant time correctly', () => {
+      // Create a state with a storytime participant as the current speaker
+      const state = createMockState({
+        currentSpeakerId: 'storytime-participant',
+        currentTimeSeconds: 180,
+        participants: [
+          {
+            id: 'participant-1',
+            name: 'Alice',
+            included: true,
+            allocatedTimeSeconds: 120,
+            remainingTimeSeconds: 90,
+            usedTimeSeconds: 30,
+            status: ParticipantStatus.PENDING,
+            hasSpeakerRole: false,
+            type: 'interactive'
+          },
+          {
+            id: 'storytime-participant',
+            name: 'Story Time',
+            included: true,
+            allocatedTimeSeconds: 180,
+            remainingTimeSeconds: 180,
+            usedTimeSeconds: 0,
+            status: ParticipantStatus.ACTIVE,
+            hasSpeakerRole: true,
+            type: 'storytime'
+          }
+        ]
+      });
+      
+      const result = meetingTimerService.processTick(state);
+      
+      // Current time should decrease
+      expect(result.currentTimeSeconds).toBe(179);
+      
+      // Storytime participant's remaining and used time should be updated
+      const updatedSpeaker = result.participants.find(p => p.id === 'storytime-participant');
+      expect(updatedSpeaker?.remainingTimeSeconds).toBe(179);
+      expect(updatedSpeaker?.usedTimeSeconds).toBe(1);
+    });
+
+    it('should transition from storytime to next participant when time is up', () => {
+      // Create a state with a storytime participant as the current speaker with 1 second left
+      const state = createMockState({
+        currentSpeakerId: 'storytime-participant',
+        currentTimeSeconds: 1,
+        participants: [
+          {
+            id: 'storytime-participant',
+            name: 'Story Time',
+            included: true,
+            allocatedTimeSeconds: 180,
+            remainingTimeSeconds: 1,
+            usedTimeSeconds: 179,
+            status: ParticipantStatus.ACTIVE,
+            hasSpeakerRole: true,
+            type: 'storytime'
+          },
+          {
+            id: 'participant-1',
+            name: 'Alice',
+            included: true,
+            allocatedTimeSeconds: 120,
+            remainingTimeSeconds: 120,
+            usedTimeSeconds: 0,
+            status: ParticipantStatus.PENDING,
+            hasSpeakerRole: false,
+            type: 'interactive'
+          }
+        ],
+        speakerQueue: ['participant-1']
+      });
+      
+      const result = meetingTimerService.processTick(state);
+      
+      // Storytime participant should be finished
+      const previousSpeaker = result.participants.find(p => p.id === 'storytime-participant');
+      expect(previousSpeaker?.status).toBe(ParticipantStatus.FINISHED);
+      expect(previousSpeaker?.hasSpeakerRole).toBe(false);
+      
+      // Next speaker should be active
+      expect(result.currentSpeakerId).toBe('participant-1');
+      const nextSpeaker = result.participants.find(p => p.id === 'participant-1');
+      expect(nextSpeaker?.status).toBe(ParticipantStatus.ACTIVE);
+      expect(nextSpeaker?.hasSpeakerRole).toBe(true);
+      
+      // Timer should be reset to the new speaker's total available time
+      expect(result.currentTimeSeconds).toBe(120);
     });
   });
 });

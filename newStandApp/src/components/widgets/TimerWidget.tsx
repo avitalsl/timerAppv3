@@ -15,8 +15,9 @@ const TimerWidget = forwardRef<TimerWidgetRef, {}>((props, ref) => {
     isMeetingActive,
     timerConfig,
     participants,
-    currentParticipantIndex,
+    currentSpeakerId,
   } = state;
+  const currentSpeaker = participants.find(p => p.id === currentSpeakerId) || null;
 
   // State for donation animation
   const [showDonationAnimation, setShowDonationAnimation] = useState(false);
@@ -97,10 +98,11 @@ const TimerWidget = forwardRef<TimerWidgetRef, {}>((props, ref) => {
 
   const isPlayPauseDisabled = !isMeetingActive || timerStatus === 'finished';
   const isNextParticipantMode = isMeetingActive && timerConfig?.mode === 'per-participant';
+  const currentSpeakerIdx = participants.findIndex(p => p.id === currentSpeakerId);
   const isNextParticipantDisabled = 
     !isNextParticipantMode || 
-    currentParticipantIndex === null || 
-    currentParticipantIndex >= participants.length - 1 ||
+    currentSpeakerIdx === -1 || 
+    currentSpeakerIdx >= participants.length - 1 ||
     timerStatus === 'finished';
   const isExtensionAllowed = isMeetingActive && timerConfig?.allowExtension && timerStatus !== 'finished';
 

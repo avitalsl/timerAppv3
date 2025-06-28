@@ -4,7 +4,6 @@ import type { TimerWidgetRef } from './widgets/TimerWidget';
 import { useMeeting } from '../contexts/MeetingContext';
 import { ComponentType, COMPONENT_DEFINITIONS } from '../types/layoutTypes';
 import ParticipantListWidget from './widgets/ParticipantListWidget';
-import StoryWidget from './widgets/StoryWidget'; // Import StoryWidget
 import MeetingOverScreen from './MeetingOverScreen'; // Import MeetingOverScreen
 // Placeholder Widgets - these should be actual component imports
 const PlaceholderWidget: React.FC<{ name: string }> = ({ name }) => (
@@ -28,7 +27,6 @@ const componentRegistry: Record<string, React.FC<any>> = {
   agenda: AgendaWidget,
   sprintGoals: SprintGoalsWidget,
   checklist: ChecklistWidget,
-  [ComponentType.STORY]: StoryWidget, // Added StoryWidget to the registry
   // Timer is handled separately in the sidebar
 };
 

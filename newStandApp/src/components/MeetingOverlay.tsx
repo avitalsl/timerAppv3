@@ -12,7 +12,6 @@ import MeetingScreen from './MeetingScreen';
  */
 const MeetingOverlay = () => {
   const { state: meetingState, dispatch } = useMeeting();
-  console.log('MeetingOverlay rendered!')
 
   // State to hold the main element DOM reference
   const [mainElement, setMainElement] = useState<Element | null>(null);

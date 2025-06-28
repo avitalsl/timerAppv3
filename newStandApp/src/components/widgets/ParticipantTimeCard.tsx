@@ -1,5 +1,5 @@
-import React from 'react';
-import { User, Gift, SkipForward, Lock } from 'lucide-react'; // Icons for the card
+import React, { useEffect } from 'react';
+import { User, Gift, SkipForward, Lock, BookOpen } from 'lucide-react'; 
 import { type Participant, ParticipantStatus } from '../../contexts/MeetingContext';
 import { meetingTimerService } from '../../services/meetingTimerService';
 import { useUserContext } from '../../contexts/UserContext';
@@ -47,6 +47,14 @@ const ParticipantTimeCard: React.FC<ParticipantTimeCardProps> = ({
   // Show donate button only for interactive users on their own card
   // We'll show it disabled if they can't donate (not enough time)
   const showDonateButton = isCurrentUserCard && participant.type === 'interactive' && hasActiveSpeaker && !isActiveSpeaker;
+
+  // Determine if this is a Storytime participant
+  const isStorytime = participant.type === 'storytime';
+  
+  // Get storyteller name from meeting state
+  const storytellerName = state.kickoffSettings?.storytellerName || 'Storyteller';
+
+  // Log participant statuses at different stages of the meeting
   
   // Format seconds to display as mm:ss
   const formatTime = (seconds: number): string => {
@@ -59,27 +67,29 @@ const ParticipantTimeCard: React.FC<ParticipantTimeCardProps> = ({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
   
-  // Determine card styling based on participant status
+  // Determine card styling based on participant status and type
   let cardClasses = "p-3 rounded-lg border transition-all duration-300 ease-in-out";
   let statusColor = "bg-gray-100";
   
-  switch(participant.status) {
-    case ParticipantStatus.ACTIVE:
-      cardClasses += " border-primary-dark";
-      statusColor = "bg-green-500";
-      break;
-    case ParticipantStatus.FINISHED:
-      cardClasses += " border-gray-300 bg-gray-50";
-      statusColor = "bg-blue-500";
-      break;
-    case ParticipantStatus.SKIPPED:
-      cardClasses += " border-gray-300 bg-gray-50 opacity-70";
-      statusColor = "bg-yellow-500";
-      break;
-    default: // PENDING
-      cardClasses += " border-gray-200";
-      statusColor = "bg-gray-300";
-      break;
+  // Special styling for Storytime
+  if (isStorytime) {
+    cardClasses += " border-indigo-300 bg-indigo-50";
+  } else {
+    switch(participant.status) {
+      case ParticipantStatus.ACTIVE:
+        cardClasses += " border-primary-dark";
+        statusColor = "bg-green-500";
+        break;
+      case ParticipantStatus.FINISHED:
+      case ParticipantStatus.SKIPPED:
+        cardClasses += " border-gray-300 bg-gray-50";
+        statusColor = "bg-blue-500";
+        break;
+      default: // PENDING
+        cardClasses += " border-gray-200";
+        statusColor = "bg-gray-300";
+        break;
+    }
   }
   
   // Add highlighting for current speaker or explicitly reset ring styling when not the current speaker
@@ -94,25 +104,29 @@ const ParticipantTimeCard: React.FC<ParticipantTimeCardProps> = ({
       {/* Header with name and status indicator */}
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center">
-          <User className="w-4 h-4 mr-2 text-gray-700" />
-          <h4 className="font-medium text-gray-800">{participant.name}</h4>
+          {isStorytime ? (
+            <BookOpen className="w-4 h-4 mr-2 text-indigo-700" />
+          ) : (
+            <User className="w-4 h-4 mr-2 text-gray-700" />
+          )}
+          <h4 className={`font-medium ${isStorytime ? 'text-indigo-800' : 'text-gray-800'}`}>
+            {participant.name}
+            {isStorytime && <span className="ml-2 text-xs bg-indigo-200 text-indigo-800 px-2 py-0.5 rounded-full">Storytime</span>}
+          </h4>
         </div>
-        <div className={`w-3 h-3 rounded-full ${statusColor}`} title={participant.status}></div>
+        {!isStorytime && <div className={`w-3 h-3 rounded-full ${statusColor}`} title={participant.status}></div>}
       </div>
       
-      {/* Time information - only shown for interactive participants */}
-      {participant.type === 'interactive' && (
-        <div className="flex justify-between text-xs mb-3">
-          <div className="flex flex-col">
-            <span className="text-gray-500">Time</span>
-            <span className="font-medium">{formatTime(participant.remainingTimeSeconds)}</span>
-          </div>
+      {/* Storytime description */}
+      {isStorytime && (
+        <div className="text-xs text-indigo-700 mt-1 mb-2" data-component-name="ParticipantTimeCard">
+          {`Story by ${storytellerName}`}
         </div>
       )}
       
-      {/* Action buttons - only shown to interactive users */}
+      {/* Action buttons - only shown to interactive users and not for Storytime */}
       <div className="flex justify-between mt-2">
-        {canInteract ? (
+        {canInteract && !isStorytime ? (
           <>
             {showDonateButton && (
               <button 
@@ -142,12 +156,12 @@ const ParticipantTimeCard: React.FC<ParticipantTimeCardProps> = ({
               </button>
             )}
           </>
-        ) : (
+        ) : !isStorytime ? (
           <div className="flex items-center text-xs text-gray-500">
             <Lock className="w-3 h-3 mr-1" />
             <span>View only</span>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

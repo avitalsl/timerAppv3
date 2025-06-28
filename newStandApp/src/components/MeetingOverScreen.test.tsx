@@ -1,11 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import MeetingOverScreen from './MeetingOverScreen';
-import { MeetingProvider } from '../contexts/MeetingContext';
 
 // Mock the useMeeting hook to provide necessary context
 vi.mock('../contexts/MeetingContext', () => ({
-  ...vi.importActual('../contexts/MeetingContext'),
   useMeeting: () => ({
     state: {
       timerStatus: 'finished',
@@ -17,11 +15,7 @@ vi.mock('../contexts/MeetingContext', () => ({
 
 describe('MeetingOverScreen', () => {
   it('renders the meeting over screen with correct content', () => {
-    render(
-      <MeetingProvider>
-        <MeetingOverScreen />
-      </MeetingProvider>
-    );
+    render(<MeetingOverScreen />);
     
     // Check that the main elements are rendered
     expect(screen.getByTestId('meeting-over-screen')).toBeInTheDocument();

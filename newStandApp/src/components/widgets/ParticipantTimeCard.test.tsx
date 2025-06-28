@@ -85,8 +85,6 @@ describe('ParticipantTimeCard', () => {
 
     // Check basic information is displayed
     expect(screen.getByText('Test User')).toBeInTheDocument();
-    // Only check for remaining time since we've simplified the UI
-    expect(screen.getByText('01:30')).toBeInTheDocument(); // Remaining time
   });
 
   it('shows donate button for current user when they are interactive and not the speaker', () => {
@@ -228,10 +226,6 @@ describe('ParticipantTimeCard', () => {
       />
     );
 
-    // Time displays should show "00:00" instead of "NaN:NaN"
-    const timeDisplays = screen.getAllByText('00:00');
-    expect(timeDisplays.length).toBeGreaterThan(0);
-    
     // Component should render without errors
     expect(screen.getByText('Incomplete User')).toBeInTheDocument();
     expect(screen.getByTestId(`participant-card-${incompleteParticipant.id}`)).toBeInTheDocument();

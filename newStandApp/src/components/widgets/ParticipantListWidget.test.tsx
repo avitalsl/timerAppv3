@@ -5,6 +5,12 @@ import { useMeeting } from '../../contexts/MeetingContext';
 import type { Participant } from '../../contexts/MeetingContext';
 import { ParticipantStatus } from '../../contexts/MeetingContext';
 import { useUserContext } from '../../contexts/UserContext';
+import React from 'react';
+
+// Create a mock TimerAnimationContext for testing
+const MockTimerAnimationContext = React.createContext<{ triggerDonationAnimation: () => void }>({
+  triggerDonationAnimation: () => {}
+});
 
 // Mock the Lucide icons
 vi.mock('lucide-react', () => ({
@@ -38,7 +44,27 @@ vi.mock('../../contexts/MeetingContext', async (importOriginal) => {
   };
 });
 
+// Mock useTimerAnimation from MeetingScreen
+vi.mock('../MeetingScreen', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../MeetingScreen')>();
+  return {
+    ...actual,
+    useTimerAnimation: () => ({ triggerDonationAnimation: vi.fn() }),
+  };
+});
+
 const mockUseMeeting = useMeeting as Mock;
+
+// Wrapper component with TimerAnimationContext
+const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const mockTriggerDonationAnimation = vi.fn();
+  
+  return (
+    <MockTimerAnimationContext.Provider value={{ triggerDonationAnimation: mockTriggerDonationAnimation }}>
+      {children}
+    </MockTimerAnimationContext.Provider>
+  );
+};
 
 describe('ParticipantListWidget', () => {
   const mockParticipants: Participant[] = [
@@ -84,7 +110,6 @@ describe('ParticipantListWidget', () => {
     mockUseMeeting.mockReturnValue({
       state: {
         participants: [],
-        currentParticipantIndex: null,
         participantListVisibilityMode: 'normal',
         timerConfig: null,
         isMeetingActive: false,
@@ -93,7 +118,11 @@ describe('ParticipantListWidget', () => {
   });
 
   it('renders inactive state when meeting is not active', () => {
-    render(<ParticipantListWidget />);
+    render(
+      <TestWrapper>
+        <ParticipantListWidget />
+      </TestWrapper>
+    );
     
     expect(screen.getByTestId('widget-participants-inactive')).toBeInTheDocument();
     expect(screen.getByText('Participant list will appear here when the meeting starts.')).toBeInTheDocument();
@@ -103,14 +132,17 @@ describe('ParticipantListWidget', () => {
     mockUseMeeting.mockReturnValue({
       state: {
         participants: [],
-        currentParticipantIndex: null,
         participantListVisibilityMode: 'normal',
         timerConfig: null,
         isMeetingActive: true,
       },
     });
     
-    render(<ParticipantListWidget />);
+    render(
+      <TestWrapper>
+        <ParticipantListWidget />
+      </TestWrapper>
+    );
     
     expect(screen.getByTestId('widget-participants-empty')).toBeInTheDocument();
     expect(screen.getByText('No participants in this meeting.')).toBeInTheDocument();
@@ -120,14 +152,17 @@ describe('ParticipantListWidget', () => {
     mockUseMeeting.mockReturnValue({
       state: {
         participants: mockParticipants,
-        currentParticipantIndex: null,
         participantListVisibilityMode: 'normal',
         timerConfig: null,
         isMeetingActive: true,
       },
     });
     
-    render(<ParticipantListWidget />);
+    render(
+      <TestWrapper>
+        <ParticipantListWidget />
+      </TestWrapper>
+    );
     
     expect(screen.getByTestId('widget-participants')).toBeInTheDocument();
     expect(screen.getByText('Participants')).toBeInTheDocument();
@@ -142,46 +177,53 @@ describe('ParticipantListWidget', () => {
   });
 
   it('highlights the current speaker in per-participant mode', () => {
-    const currentParticipantIndex = 0; // Alice
     
     mockUseMeeting.mockReturnValue({
       state: {
         participants: mockParticipants,
-        currentParticipantIndex,
         participantListVisibilityMode: 'normal',
         timerConfig: { mode: 'per-participant', durationSeconds: 60 },
         isMeetingActive: true,
+        currentSpeakerId: '1', // Alice is the current speaker
       },
+      dispatch: vi.fn(),
     });
     
-    render(<ParticipantListWidget />);
+    render(
+      <TestWrapper>
+        <ParticipantListWidget />
+      </TestWrapper>
+    );
     
-    // Current participant card should have ring styling
-    const currentParticipantCard = screen.getByTestId(`participant-card-${mockParticipants[currentParticipantIndex].id}`);
-    expect(currentParticipantCard).toHaveClass('ring-2');
-    expect(currentParticipantCard).toHaveClass('ring-primary-dark');
+    // Current speaker should have highlight styles
+    const currentSpeakerCard = screen.getByTestId('participant-card-1');
+    expect(currentSpeakerCard).toHaveClass('ring-2');
+    expect(currentSpeakerCard).toHaveClass('ring-primary-dark');
     
-    // Other participants should not have those classes
+    // Other participants should not have highlight styles
     const otherParticipantCard = screen.getByTestId('participant-card-2');
     expect(otherParticipantCard).not.toHaveClass('ring-2');
     expect(otherParticipantCard).not.toHaveClass('ring-primary-dark');
   });
 
   it('applies blur styling to non-speakers when in focus mode', () => {
-    const currentParticipantIndex = 0; // Alice
     
     mockUseMeeting.mockReturnValue({
       state: {
         participants: mockParticipants,
-        currentParticipantIndex,
         participantListVisibilityMode: 'focus_speaker',
         timerConfig: { mode: 'per-participant', durationSeconds: 60 },
         isMeetingActive: true,
+        currentSpeakerId: '1', // Alice is the current speaker
       },
       dispatch: vi.fn(),
     });
     
-    render(<ParticipantListWidget />);
+    render(
+      <TestWrapper>
+        <ParticipantListWidget />
+      </TestWrapper>
+    );
     
     // Get all participant cards
     const participantCards = screen.getAllByTestId(/^participant-card-/);
@@ -202,7 +244,6 @@ describe('ParticipantListWidget', () => {
     mockUseMeeting.mockReturnValue({
       state: {
         participants: mockParticipants,
-        currentParticipantIndex: null, // No current participant in fixed mode
         participantListVisibilityMode: 'normal',
         timerConfig: { mode: 'fixed', durationSeconds: 300 }, // Fixed mode
         isMeetingActive: true,
@@ -210,7 +251,11 @@ describe('ParticipantListWidget', () => {
       dispatch: vi.fn(),
     });
     
-    render(<ParticipantListWidget />);
+    render(
+      <TestWrapper>
+        <ParticipantListWidget />
+      </TestWrapper>
+    );
     
     // No participant should have the highlight styles
     const participant0 = screen.getByTestId('participant-card-1');
@@ -236,7 +281,6 @@ describe('ParticipantListWidget', () => {
     mockUseMeeting.mockReturnValue({
       state: {
         participants: mockParticipants,
-        currentParticipantIndex: 1, // Bob is speaking
         currentSpeakerId: '2', // Bob's ID
         participantListVisibilityMode: 'normal',
         timerConfig: { mode: 'per-participant', durationSeconds: 300 },
@@ -253,7 +297,6 @@ describe('ParticipantListWidget', () => {
     mockUseMeeting.mockReturnValue({
       state: {
         participants: interactiveParticipants,
-        currentParticipantIndex: 1, // Bob is speaking
         currentSpeakerId: '2', // Bob's ID
         participantListVisibilityMode: 'normal',
         timerConfig: { mode: 'per-participant', durationSeconds: 300 },
@@ -263,7 +306,11 @@ describe('ParticipantListWidget', () => {
     });
     
     // Render the component
-    render(<ParticipantListWidget />);
+    render(
+      <TestWrapper>
+        <ParticipantListWidget />
+      </TestWrapper>
+    );
     
     // Find the donate button on Alice's card (id='1')
     const donateButton = screen.getByTestId('donate-btn-1');

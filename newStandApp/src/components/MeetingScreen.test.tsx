@@ -12,9 +12,6 @@ vi.mock('./widgets/TimerWidget', () => ({
 vi.mock('./widgets/ParticipantListWidget', () => ({
   default: () => <div data-testid="mock-participant-list-widget">Participant List Widget</div>,
 }));
-vi.mock('./widgets/StoryWidget', () => ({
-  default: () => <div data-testid="mock-story-widget">Story Widget</div>,
-}));
 vi.mock('./MeetingOverScreen', () => ({
   default: () => <div data-testid="mock-meeting-over-screen">Meeting Over Screen</div>,
 }));
@@ -109,7 +106,7 @@ describe('MeetingScreen', () => {
   it('should render selected components in the grid', () => {
     mockUseMeeting.mockReturnValue({
       state: {
-        selectedGridComponentIds: ['participants', ComponentType.STORY],
+        selectedGridComponentIds: ['participants'],
       },
       dispatch: vi.fn(),
     });
@@ -122,9 +119,6 @@ describe('MeetingScreen', () => {
     // Check that the components are rendered
     expect(screen.getByTestId('grid-item-participants')).toBeInTheDocument();
     expect(screen.getByTestId('mock-participant-list-widget')).toBeInTheDocument();
-    
-    expect(screen.getByTestId(`grid-item-${ComponentType.STORY}`)).toBeInTheDocument();
-    expect(screen.getByTestId('mock-story-widget')).toBeInTheDocument();
   });
 
   it('should filter out the timer from the grid content', () => {

@@ -33,7 +33,7 @@ export interface Participant {
   status: ParticipantStatus;       // Current speaking status
   hasSpeakerRole: boolean;         // Whether this participant has the speaker role
   // User type and authentication fields
-  type: 'interactive' | 'viewOnly'; // Type of participant
+  type: 'interactive' | 'viewOnly' | 'storytime'; // Type of participant
   email?: string;                  // Email address for interactive participants
   userId?: string;                 // User ID for interactive participants
 }
@@ -63,7 +63,6 @@ export interface MeetingState {
   timerConfig: MeetingTimerConfig | null;
   kickoffSettings: KickoffSetting | null;
   participants: Participant[]; // Only included participants
-  currentParticipantIndex: number | null;
   currentTimeSeconds: number;
   timerStatus: 'idle' | 'running' | 'paused' | 'finished' | 'participant_transition';
   selectedGridComponentIds: string[];
@@ -80,7 +79,6 @@ const initialState: MeetingState = {
   timerConfig: null,
   kickoffSettings: null,
   participants: [],
-  currentParticipantIndex: null,
   currentTimeSeconds: 0,
   timerStatus: 'idle',
   selectedGridComponentIds: [],
@@ -112,9 +110,6 @@ export type MeetingAction =
 const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingState => {
   switch (action.type) {
     case 'START_MEETING': {
-      // Debug: Log the full payload and the participantListVisibilityMode
-      console.log('[DEBUG] START_MEETING payload:', action.payload);
-      console.log('[DEBUG] participantListVisibilityMode:', action.payload.participantListVisibilityMode);
       // Logic to process StoredTimerConfig and initialize state
       // This will be fleshed out more when we implement useMeetingTimer
       const { storedTimerConfig, participants, kickoffSettings, selectedGridComponentIds, participantListVisibilityMode } = action.payload;
@@ -135,9 +130,12 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
       }
 
       const activeParticipants = participants.filter(p => p.included);
-
+      
+      // Create a new array for participants 
+      let meetingParticipants = [...activeParticipants];
+      
       // Initialize participant statuses - first one ACTIVE, rest PENDING
-      const initializedParticipants = activeParticipants.map((participant, index) => ({
+      const initializedParticipants = meetingParticipants.map((participant, index) => ({
         ...participant,
         status: index === 0 ? ParticipantStatus.ACTIVE : ParticipantStatus.PENDING,
         hasSpeakerRole: index === 0,
@@ -148,11 +146,8 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
       // Get the first participant's ID for currentSpeakerId
       const firstParticipantId = initializedParticipants.length > 0 ? initializedParticipants[0].id : null;
 
-      // Conditionally add StoryWidget if mode is 'storyTime'
+      // Create a copy of the selected components
       const finalSelectedGridComponentIds = [...selectedGridComponentIds]; // Use the one from action.payload
-      if (kickoffSettings?.mode === 'storyTime' && !finalSelectedGridComponentIds.includes(ComponentType.STORY)) {
-        finalSelectedGridComponentIds.push(ComponentType.STORY);
-      }
 
       return {
         ...initialState, // Reset to initial state first
@@ -167,7 +162,6 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
         },
         kickoffSettings: kickoffSettings,
         participants: initializedParticipants,
-        currentParticipantIndex: mode === 'per-participant' && activeParticipants.length > 0 ? 0 : null,
         currentTimeSeconds: durationSeconds,
         timerStatus: 'running',
         selectedGridComponentIds: finalSelectedGridComponentIds, // Use the potentially modified list
@@ -179,48 +173,44 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
       };
     }
     case 'END_MEETING':
-      console.log('[MeetingContext] END_MEETING');
       return { ...initialState, selectedGridComponentIds: [], meetingStatus: 'Finished' }; // Reset to initial state, isMeetingUIVisible will be false
     case 'PAUSE_TIMER':
       if (!state.isMeetingActive || state.timerStatus !== 'running') return state;
-      console.log('[MeetingContext] PAUSE_TIMER');
       return { ...state, timerStatus: 'paused' };
     case 'RESUME_TIMER':
       if (!state.isMeetingActive || state.timerStatus !== 'paused') return state;
-      console.log('[MeetingContext] RESUME_TIMER');
+      ('[MeetingContext] RESUME_TIMER');
       return { ...state, timerStatus: 'running' };
     case 'TICK':
       // Use the processTick function from the service
       const elapsedSeconds = action.payload?.elapsedSeconds ?? 1;
       return meetingTimerService.processTick(state, elapsedSeconds);
-    case 'NEXT_PARTICIPANT':
-      // Logic for 'per-participant' mode, driven by useMeetingTimer or TimerWidget
-      console.log('[MeetingContext] NEXT_PARTICIPANT');
-      if (state.timerConfig?.mode === 'per-participant' && state.currentParticipantIndex !== null) {
-        const nextIndex = state.currentParticipantIndex + 1;
-        if (nextIndex < state.participants.length) {
-          console.log('[MeetingContext] NEXT_PARTICIPANT: Resetting currentTimeSeconds to', state.timerConfig?.durationSeconds, 'for participant index', nextIndex);
-          // Set the current speaker ID as well for the new participant
-          const nextParticipant = state.participants[nextIndex];
-          return {
-            ...state,
-            currentParticipantIndex: nextIndex,
-            currentSpeakerId: nextParticipant.id,
-            currentTimeSeconds: state.timerConfig?.durationSeconds, // Reset time for next participant
-            timerStatus: 'running',
-          };
-        } else {
-          // Last participant finished
-          return { 
-            ...state, 
-            timerStatus: 'finished', 
-            isMeetingActive: false, 
-            meetingStatus: 'Finished'
-          };
+      case 'NEXT_PARTICIPANT': {
+        // Logic for 'per-participant' mode, driven by useMeetingTimer or TimerWidget
+        if (state.timerConfig?.mode === 'per-participant' && state.currentSpeakerId) {
+          const currentIdx = state.participants.findIndex(p => p.id === state.currentSpeakerId);
+          const nextIdx = currentIdx + 1;
+          if (nextIdx < state.participants.length) {
+            const nextParticipant = state.participants[nextIdx];
+            return {
+              ...state,
+              currentSpeakerId: nextParticipant.id,
+              currentTimeSeconds: state.timerConfig?.durationSeconds,
+              timerStatus: 'running',
+            };
+          } else {
+            // Last participant finished
+            return { 
+              ...state, 
+              timerStatus: 'finished', 
+              isMeetingActive: false, 
+              meetingStatus: 'Finished'
+            };
+          }
         }
+        return state;
       }
-      return state;
-    case 'SET_NEXT_SPEAKER':
+      case 'SET_NEXT_SPEAKER':
       // Use the service to get speaker by ID rather than index
       return {
         ...state, 
@@ -264,7 +254,6 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
       if (!state.isMeetingActive || !state.timerConfig?.allowExtension || !state.timerConfig?.extensionAmountSeconds) {
         return state;
       }
-      console.log('[MeetingContext] ADD_TIME: Adding', state.timerConfig.extensionAmountSeconds, 'seconds to timer');
       return {
         ...state,
         currentTimeSeconds: state.currentTimeSeconds + state.timerConfig.extensionAmountSeconds
@@ -272,7 +261,6 @@ const meetingReducer = (state: MeetingState, action: MeetingAction): MeetingStat
     case 'SET_TIMER_STATUS':
       return { ...state, timerStatus: action.payload };
     case 'UPDATE_SELECTED_COMPONENTS':
-      console.log('[MeetingContext] UPDATE_SELECTED_COMPONENTS:', action.payload);
       return {
         ...state,
         selectedGridComponentIds: action.payload

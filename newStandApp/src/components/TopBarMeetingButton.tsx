@@ -17,13 +17,6 @@ export default function TopBarMeetingButton() {
   const handleClick = () => {
     // Get all necessary settings from the storage service
     const { timerConfig, participants, kickoffSettings, participantListVisibilityMode } = meetingSettingsService.getAllSettings(visibleComponents);
-    console.log('Start Meeting settings:', {
-      timerConfig,
-      participants,
-      kickoffSettings,
-      participantListVisibilityMode,
-      visibleComponents
-    });
     // Start the meeting in the context, which will also make the UI visible
     dispatch({
       type: 'START_MEETING',
@@ -41,22 +34,6 @@ export default function TopBarMeetingButton() {
 
   // Get the meeting state directly to avoid excessive context calls
   // const { state: meetingState } = useMeeting(); // Already fetched above
-  
-  useEffect(() => {
-    // Log when meeting starts and UI is visible, but only once per meeting start
-    if (meetingState.isMeetingActive && meetingState.timerStatus === 'running' && meetingState.isMeetingUIVisible && !hasLoggedInitialConfig) {
-      // Using JSON.parse(JSON.stringify(...)) for a deep copy to ensure the logged object is a snapshot
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[TopBarMeetingButton] Meeting started with config:', JSON.parse(JSON.stringify({
-          timerConfig: meetingState.timerConfig,
-          participantsCount: meetingState.participants.length,
-          kickoffSettings: meetingState.kickoffSettings,
-          selectedComponents: meetingState.selectedGridComponentIds
-        })));
-      }
-      setHasLoggedInitialConfig(true);
-    }
-  }, [meetingState, hasLoggedInitialConfig]); // Removed isOverlayVisible from dependencies
 
   useEffect(() => {
     // Reset the log flag when the meeting is no longer active, so it can log for the next meeting

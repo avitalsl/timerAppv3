@@ -61,7 +61,7 @@ const TestComponent = ({ withDonation = false }: { withDonation?: boolean }) => 
       <div data-testid="visibility-state">{state.isMeetingUIVisible.toString()}</div>
       <div data-testid="timer-status">{state.timerStatus}</div>
       <div data-testid="current-time">{state.currentTimeSeconds}</div>
-      <div data-testid="participant-index">{state.currentParticipantIndex}</div>
+      <div data-testid="current-speaker-id">{state.currentSpeakerId}</div>
 
       <button onClick={() => startMeeting({ mode: 'fixed', totalDurationMinutes: 1, allowExtension: false })}>Start Meeting</button>
       <button onClick={() => startMeeting({ mode: 'fixed', totalDurationMinutes: 1, allowExtension: true, extensionAmountSeconds: 15 })}>Start Extendable Meeting</button>
@@ -109,7 +109,7 @@ describe('MeetingContext', () => {
     render(<MeetingProvider><TestComponent /></MeetingProvider>);
     fireEvent.click(screen.getByText('Start Per-Participant Meeting'));
     fireEvent.click(screen.getByText('Next Participant'));
-    expect(screen.getByTestId('participant-index')).toHaveTextContent('1');
+    expect(screen.getByTestId('current-speaker-id')).toHaveTextContent('2'); // בדוק לפי id של המשתתף הבא
     expect(screen.getByTestId('current-time')).toHaveTextContent('30');
   });
 

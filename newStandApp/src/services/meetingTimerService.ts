@@ -58,6 +58,12 @@ export function donateTime(
     return state;
   }
   
+  // Block donations to storytime participants
+  if (recipient.type === 'storytime') {
+    console.error("Cannot donate time to storytime participants");
+    return state;
+  }
+  
   // Find the indices of both participants
   const donorIndex = state.participants.findIndex(p => p.id === donor.id);
   const recipientIndex = state.participants.findIndex(p => p.id === recipient.id);
@@ -249,10 +255,6 @@ export function processTick(state: MeetingState, elapsedSeconds: number = 1): Me
   
   // If time is up for the current speaker, move to the next one
   if (newRemainingTime <= 0) {
-    console.log('[processTick] Current speaker time is up, moving to next participant', {
-      currentSpeakerId: state.currentSpeakerId,
-      remainingTime: newRemainingTime
-    });
     return moveToNextParticipant(updatedState);
   }
   

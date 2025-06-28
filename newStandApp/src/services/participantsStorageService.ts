@@ -24,43 +24,52 @@ export const participantsStorageService = {
       DEFAULT_PARTICIPANTS,
       {
         validate: (value): value is Participant[] => {
-          return Array.isArray(value) && 
-                 value.every(item => 
-                   typeof item === 'object' && 
-                   'id' in item &&
-                   'name' in item && 
-                   'included' in item &&
-                   'allocatedTimeSeconds' in item &&
-                   'remainingTimeSeconds' in item &&
-                   'usedTimeSeconds' in item &&
-                   'status' in item &&
-                   'hasSpeakerRole' in item &&
-                   'type' in item
-                 );
+          if (!Array.isArray(value)) {
+            return false;
+          }
+          
+          return value.every(item => 
+            item !== null &&
+            typeof item === 'object' && 
+            'id' in item && typeof item.id === 'string' &&
+            'name' in item && typeof item.name === 'string' &&
+            'included' in item && typeof item.included === 'boolean' &&
+            'allocatedTimeSeconds' in item && typeof item.allocatedTimeSeconds === 'number' &&
+            'remainingTimeSeconds' in item && typeof item.remainingTimeSeconds === 'number' &&
+            'usedTimeSeconds' in item && typeof item.usedTimeSeconds === 'number' &&
+            'status' in item &&
+            'hasSpeakerRole' in item && typeof item.hasSpeakerRole === 'boolean' &&
+            'type' in item && typeof item.type === 'string' && 
+            (item.type === 'interactive' || item.type === 'viewOnly' || item.type === 'storytime')
+          );
         },
         migrate: (legacyData: any): Participant[] => {
           // Handle migration from older formats
           if (Array.isArray(legacyData)) {
-            return legacyData.map(item => {
-              // Ensure each item has the required structure
-              const participant: Participant = {
-                id: item.id || uuidv4(), 
-                name: typeof item.name === 'string' ? item.name : '',
-                included: typeof item.included === 'boolean' ? item.included : true,
-                // Initialize time properties to ensure they are never undefined
-                allocatedTimeSeconds: typeof item.allocatedTimeSeconds === 'number' ? item.allocatedTimeSeconds : 0,
-                remainingTimeSeconds: typeof item.remainingTimeSeconds === 'number' ? item.remainingTimeSeconds : 0,
-                usedTimeSeconds: typeof item.usedTimeSeconds === 'number' ? item.usedTimeSeconds : 0,
-                // Initialize status fields
-                status: item.status !== undefined ? item.status : ParticipantStatus.PENDING,
-                hasSpeakerRole: typeof item.hasSpeakerRole === 'boolean' ? item.hasSpeakerRole : false,
-                // Add new fields with defaults
-                type: item.type || 'viewOnly',
-                email: item.email || undefined,
-                userId: item.userId || undefined
-              };
-              return participant;
-            }).filter(p => p.name); 
+            // Filter out null/undefined items and those with empty names first
+            return legacyData
+              .filter(item => item && typeof item === 'object' && item.name)
+              .map(item => {
+                // Ensure each item has the required structure
+                return {
+                  // Generate a new ID if missing or invalid
+                  id: item.id && typeof item.id === 'string' ? item.id : uuidv4(),
+                  name: typeof item.name === 'string' ? item.name : '',
+                  included: typeof item.included === 'boolean' ? item.included : true,
+                  // Initialize time properties to ensure they are never undefined
+                  allocatedTimeSeconds: typeof item.allocatedTimeSeconds === 'number' ? item.allocatedTimeSeconds : 0,
+                  remainingTimeSeconds: typeof item.remainingTimeSeconds === 'number' ? item.remainingTimeSeconds : 0,
+                  usedTimeSeconds: typeof item.usedTimeSeconds === 'number' ? item.usedTimeSeconds : 0,
+                  // Initialize status fields with proper defaults
+                  status: Object.values(ParticipantStatus).includes(item.status) ? 
+                    item.status : ParticipantStatus.PENDING,
+                  hasSpeakerRole: typeof item.hasSpeakerRole === 'boolean' ? item.hasSpeakerRole : false,
+                  // Add new fields with defaults
+                  type: typeof item.type === 'string' ? item.type : 'viewOnly',
+                  email: item.email || undefined,
+                  userId: item.userId || undefined
+                };
+              });
           }
           return DEFAULT_PARTICIPANTS;
         }

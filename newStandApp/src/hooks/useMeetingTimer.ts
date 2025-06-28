@@ -12,7 +12,7 @@ export const useMeetingTimer = () => {
     timerStatus,
     currentTimeSeconds,
     timerConfig,
-    currentParticipantIndex,
+    currentSpeakerId,    // ← שימוש חדש!
     participants 
   } = state;
 
@@ -39,23 +39,15 @@ export const useMeetingTimer = () => {
           clearTimerInterval(); // Stop the current timer before transitioning
 
           if (timerConfig?.mode === 'per-participant') {
-            if (currentParticipantIndex !== null && currentParticipantIndex < participants.length - 1) {
-              // console.log('[useMeetingTimer] Time up for participant, moving to next.');
+            const currentIdx = participants.findIndex(p => p.id === currentSpeakerId);
+            if (currentIdx !== -1 && currentIdx < participants.length - 1) {
               dispatch({ type: 'NEXT_PARTICIPANT' });
             } else {
-              // Last participant finished or no participants
-              // console.log('[useMeetingTimer] All participants finished.');
               dispatch({ type: 'SET_TIMER_STATUS', payload: 'finished' });
-              // Consider dispatch({ type: 'END_MEETING' }) if immediate reset is desired
             }
           } else if (timerConfig?.mode === 'fixed') {
-            // Fixed meeting time ended
-            // console.log('[useMeetingTimer] Fixed meeting time finished.');
             dispatch({ type: 'SET_TIMER_STATUS', payload: 'finished' });
-            // Consider dispatch({ type: 'END_MEETING' })
           } else {
-            // Should not happen if timerConfig is set correctly
-            // console.log('[useMeetingTimer] Timer ended but mode is unclear.');
             dispatch({ type: 'SET_TIMER_STATUS', payload: 'finished' });
           }
         }
@@ -68,8 +60,5 @@ export const useMeetingTimer = () => {
     // Cleanup function to clear interval when component unmounts or dependencies change
     return clearTimerInterval;
 
-  }, [isMeetingActive, timerStatus, currentTimeSeconds, timerConfig, currentParticipantIndex, participants, dispatch]);
-
-  // This hook does not return anything as it only performs side effects.
-  // Components will consume MeetingContext directly for state.
+  }, [isMeetingActive, timerStatus, currentTimeSeconds, timerConfig, currentSpeakerId, participants, dispatch]);
 };

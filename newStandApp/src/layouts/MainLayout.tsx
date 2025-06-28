@@ -5,7 +5,6 @@ import Header from '../components/Header'
 import MeetingOverlay from '../components/MeetingOverlay'
 
 const MainLayout = () => {
-  console.log('[MainLayout] Component rendering');
   return (
     <>
       <div className="flex h-screen w-full" data-testid="layout-main">
